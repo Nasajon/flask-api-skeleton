@@ -1,5 +1,3 @@
-import uuid
-
 from sqlalchemy.engine.base import Connection
 
 

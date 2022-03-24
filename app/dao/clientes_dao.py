@@ -1,5 +1,5 @@
 from app.settings import log_time
-from app.model.cliente import Cliente
+from app.entity.cliente import Cliente
 
 from nsj_gcf_utils.db_adapter2 import DBAdapter2
 from typing import List

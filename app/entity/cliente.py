@@ -1,12 +1,11 @@
 import datetime
 import uuid
 
-from app.model.abstract_model import AbstractModel
 
-
-class Cliente(AbstractModel):
+class Cliente():
 
     id: uuid.UUID
+    codigo: str
     nome: str
     documento: str
     created_at: datetime.datetime
@@ -15,6 +14,7 @@ class Cliente(AbstractModel):
         super().__init__()
 
         self.id = None
+        self.codigo = None
         self.nome = None
         self.documento = None
         self.created_at = None
