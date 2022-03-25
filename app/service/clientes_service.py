@@ -1,4 +1,6 @@
 from app.dao.clientes_dao import ClientesDAO
+from app.dto.cliente_get_dto import ClienteGetDTO
+from nsj_gcf_utils.dto_util import convert_to
 
 
 class ClientesService:
@@ -8,4 +10,4 @@ class ClientesService:
         self._dao = dao
 
     def list(self):
-        return self._dao.list()
+        return convert_to(self._dao.list(), ClienteGetDTO)
