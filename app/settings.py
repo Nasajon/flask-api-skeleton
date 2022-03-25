@@ -34,16 +34,19 @@ console_handler.setFormatter(console_format)
 logger.addHandler(console_handler)
 
 
-def log_time(func, msg: str):
+def log_time(msg: str):
     """Decorator para monitoria de performance de métodos (via log)."""
 
-    def wrapper(*arg):
-        t = time.time()
-        res = func(*arg)
-        logger.info(f'----- {str(time.time()-t)} seconds --- {msg}')
-        return res
+    def decorator(function):
+        def wrapper(*arg):
+            t = time.time()
+            res = function(*arg)
+            logger.info(f'----- {str(time.time()-t)} seconds --- {msg}')
+            return res
 
-    return wrapper
+        return wrapper
+
+    return decorator
 
 
 # Configurando o Flask
