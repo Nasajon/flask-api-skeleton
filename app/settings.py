@@ -16,6 +16,8 @@ DATABASE_PORT = os.environ['DATABASE_PORT']
 DATABASE_NAME = os.environ['DATABASE_NAME']
 DATABASE_USER = os.environ['DATABASE_USER']
 
+DEFAULT_PAGE_SIZE = int(os.getenv('DEFAULT_PAGE_SIZE', 20))
+
 # Configurando o logger
 logger = logging.getLogger(APP_NAME)
 if DEBUG:
@@ -38,9 +40,9 @@ def log_time(msg: str):
     """Decorator para monitoria de performance de métodos (via log)."""
 
     def decorator(function):
-        def wrapper(*arg):
+        def wrapper(*arg, **kwargs):
             t = time.time()
-            res = function(*arg)
+            res = function(*arg, **kwargs)
             logger.info(f'----- {str(time.time()-t)} seconds --- {msg}')
             return res
 
