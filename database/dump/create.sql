@@ -6,7 +6,7 @@ create table teste.cliente (
 	id uuid not null default uuid_generate_v4(),
 	codigo bigserial not null,
 	nome varchar(100) not null,
-	documento varchar not null,
+	documento varchar(14) not null,
 	created_at timestamp without time zone not null default now(),
 	CONSTRAINT teste_cliente_pkey PRIMARY KEY (id)
 );
