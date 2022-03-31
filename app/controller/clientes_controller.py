@@ -1,26 +1,28 @@
+from app.dto.cliente_post import ClientePostDTO
 from app.injector_factory import InjectorFactory
 from app.settings import DEFAULT_PAGE_SIZE, flask_app, MOPE_CODE
 from flask import request
 from nsj_gcf_utils.exception import NotFoundException
-from nsj_gcf_utils.json_util import convert_to_dumps, json_dumps
+from nsj_gcf_utils.json_util import convert_to_dumps, json_dumps, json_loads
 from nsj_gcf_utils.pagination_util import page_body, PaginationException
 from nsj_gcf_utils.rest_error_util import format_error_body
 
 GET_ROUTE = f'/{MOPE_CODE}/clientes/<id>'
-LIST_ROUTE = f'/{MOPE_CODE}/clientes'
+LIST_POST_ROUTE = f'/{MOPE_CODE}/clientes'
 
 
-@flask_app.route(LIST_ROUTE, methods=['GET'])
+@flask_app.route(LIST_POST_ROUTE, methods=['GET'])
 def get_clientes():
-    # Recuperando os parâmetros básicos
-    base_url = request.base_url
-    args = request.args
-    limit = int(args.get('limit', DEFAULT_PAGE_SIZE))
-    current_after = args.get('after') or args.get('offset')
-    current_before = args.get('before')
-
     with InjectorFactory() as factory:
         try:
+            # Recuperando os parâmetros básicos
+            base_url = request.base_url
+            args = request.args
+            limit = int(args.get('limit', DEFAULT_PAGE_SIZE))
+            current_after = args.get('after') or args.get('offset')
+            current_before = args.get('before')
+
+            # Construindo os objetos
             service = factory.clientes_service()
             data = service.list(current_after, current_before, limit)
             dict_data = convert_to_dumps(data)
@@ -53,3 +55,18 @@ def get_cliente_by_id(id: str):
             return (json_dumps(format_error_body(f'{e}')), 404, {})
         except Exception as e:
             return (json_dumps(format_error_body(f'Erro desconhecido: {e}')), 500, {})
+
+
+@flask_app.route(LIST_POST_ROUTE, methods=['POST'])
+def post_cliente():
+    with InjectorFactory() as factory:
+        # try:
+        data = request.get_data(as_text=True)
+        data = json_loads(data, ClientePostDTO)
+
+        service = factory.clientes_service()
+        data_resp = service.insert(data)
+
+        return (json_dumps(data_resp), 200, {})
+        # except Exception as e:
+        #     return (json_dumps(format_error_body(f'Erro desconhecido: {e}')), 500, {})

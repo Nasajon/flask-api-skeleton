@@ -14,12 +14,12 @@ class ClientesDAO:
     def __init__(self, db: DBAdapter2 = None):
         self._db = db
 
-    def get(self, id: uuid.UUID):
+    def get(self, id: uuid.UUID) -> Cliente:
         """
         Recupera um cliente por meio de seu ID.
         """
 
-        query = """
+        sql = """
         select
             id, codigo, nome, documento, created_at
         from
@@ -28,7 +28,7 @@ class ClientesDAO:
             id = :id
         """
 
-        resp = self._db.execute_query_to_model(query, Cliente, id=id)
+        resp = self._db.execute_query_to_model(sql, Cliente, id=id)
 
         if len(resp) <= 0:
             raise NotFoundException(f'Cliente com id {id} não encontrado.')
@@ -94,7 +94,7 @@ class ClientesDAO:
             desc = True
 
         # Montando a query em si
-        query = f"""
+        sql = f"""
         select
             id, codigo, nome, documento, created_at
         from
@@ -105,7 +105,7 @@ class ClientesDAO:
         """
 
         resp = self._db.execute_query_to_model(
-            query,
+            sql,
             Cliente,
             codigo_after=codigo_after,
             nome_after=nome_after,
@@ -119,3 +119,34 @@ class ClientesDAO:
             resp.reverse()
 
         return resp
+
+    def insert(self, cliente: Cliente):
+        """
+        Insere um cliente no banco de dados
+        """
+
+        sql = """
+        insert into teste.cliente
+        (id, nome, documento)
+        values
+        (:id, :nome, :documento)
+        returning codigo, created_at
+        """
+
+        new_id = (cliente.id if cliente.id is not None else uuid.uuid4())
+        rowcount, returning = self._db.execute(
+            sql,
+            id=new_id,
+            nome=cliente.nome,
+            documento=cliente.documento,
+        )
+
+        if rowcount <= 0:
+            raise Exception(
+                'Erro inserindo Cliente no banco de dados')
+
+        cliente.id = new_id
+        cliente.codigo = returning[0]['codigo']
+        cliente.created_at = returning[0]['created_at']
+
+        return cliente
