@@ -11,6 +11,15 @@ class ClientesService:
     def __init__(self, dao: ClientesDAO):
         self._dao = dao
 
+    def get(
+        self,
+        id: uuid.UUID
+    ):
+        return convert_to(
+            self._dao.get(id),
+            ClienteGetDTO
+        )
+
     def list(
         self,
         after: uuid.UUID,

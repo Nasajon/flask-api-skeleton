@@ -4,3 +4,8 @@
 GET http://localhost:5000/1234/clientes HTTP/1.1
 Content-Type: application/json
 
+#####################
+# Get Cliente by ID #
+#####################
+GET http://localhost:5000/1234/clientes/d5c29f81-fc11-4a0e-a742-5e1024664ad5 HTTP/1.1
+Content-Type: application/json

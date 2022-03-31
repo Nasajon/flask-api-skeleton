@@ -4,6 +4,7 @@ from app.settings import log_time
 from app.entity.cliente import Cliente
 
 from nsj_gcf_utils.db_adapter2 import DBAdapter2
+from nsj_gcf_utils.exception import NotFoundException
 from typing import List
 
 
@@ -14,6 +15,10 @@ class ClientesDAO:
         self._db = db
 
     def get(self, id: uuid.UUID):
+        """
+        Recupera um cliente por meio de seu ID.
+        """
+
         query = """
         select
             id, codigo, nome, documento, created_at
@@ -25,7 +30,10 @@ class ClientesDAO:
 
         resp = self._db.execute_query_to_model(query, Cliente, id=id)
 
-        return resp
+        if len(resp) <= 0:
+            raise NotFoundException(f'Cliente com id {id} não encontrado.')
+
+        return resp[0]
 
     # @log_time('Listando clientes do banco de dados.')
     # TODO Corrigir implementação do decorator
@@ -36,7 +44,7 @@ class ClientesDAO:
         limit: int
     ) -> List[Cliente]:
         """
-        Recupera a lista completa de clientes.
+        Recupera uma lista paginada de clientes.
         """
 
         # Recuperando dados para paginacao
