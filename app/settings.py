@@ -18,6 +18,10 @@ DATABASE_USER = os.environ['DATABASE_USER']
 
 DEFAULT_PAGE_SIZE = int(os.getenv('DEFAULT_PAGE_SIZE', 20))
 
+OAUTH_CLIENT_ID = os.environ['OAUTH_CLIENT_ID']
+OAUTH_CLIENT_SECRET = os.environ['OAUTH_CLIENT_SECRET']
+OAUTH_TOKEN_INTROSPECTION_URL = os.environ['OAUTH_TOKEN_INTROSPECTION_URL']
+
 # Configurando o logger
 logger = logging.getLogger(APP_NAME)
 if DEBUG:

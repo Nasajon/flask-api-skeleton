@@ -6,6 +6,7 @@ from nsj_gcf_utils.exception import NotFoundException
 from nsj_gcf_utils.json_util import convert_to_dumps, json_dumps, json_loads
 from nsj_gcf_utils.pagination_util import page_body, PaginationException
 from nsj_gcf_utils.rest_error_util import format_json_error
+from app.oauth_config import require_oauth
 from pydantic import ValidationError
 
 GET_ROUTE = f'/{MOPE_CODE}/clientes/<id>'
@@ -13,6 +14,7 @@ LIST_POST_ROUTE = f'/{MOPE_CODE}/clientes'
 
 
 @flask_app.route(LIST_POST_ROUTE, methods=['GET'])
+@require_oauth()
 def get_clientes():
     with InjectorFactory() as factory:
         try:
@@ -45,6 +47,7 @@ def get_clientes():
 
 
 @flask_app.route(GET_ROUTE, methods=['GET'])
+@require_oauth()
 def get_cliente_by_id(id: str):
     with InjectorFactory() as factory:
         try:
@@ -59,6 +62,7 @@ def get_cliente_by_id(id: str):
 
 
 @flask_app.route(LIST_POST_ROUTE, methods=['POST'])
+@require_oauth()
 def post_cliente():
     with InjectorFactory() as factory:
         try:
