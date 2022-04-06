@@ -127,7 +127,7 @@ Por hora, apenas está sendo utilizada uma imagem docker (ver arquivo `docker-co
 
 * __postgres:11.5__: Imagem para instanciação do BD de exemplo da aplicação.
 
-## Principais Recursos
+## Padrões de Projeto Adotados
 
 A aplicação desenvolvida como exmplo, conta com os seguintes recursos (que podem ser usados como design patters, ou apenas como exemplo de possível implementação):
 
