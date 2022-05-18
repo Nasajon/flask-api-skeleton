@@ -3,18 +3,11 @@ import logging
 import sys
 import time
 
-from flask import Flask
 
 # Lendo variáveis de ambiente
 APP_NAME = os.environ['APP_NAME']
 DEBUG = bool(os.getenv('DEBUG', 'False'))
 MOPE_CODE = os.environ['MOPE_CODE']
-
-DATABASE_HOST = os.environ['DATABASE_HOST']
-DATABASE_PASS = os.environ['DATABASE_PASS']
-DATABASE_PORT = os.environ['DATABASE_PORT']
-DATABASE_NAME = os.environ['DATABASE_NAME']
-DATABASE_USER = os.environ['DATABASE_USER']
 
 DEFAULT_PAGE_SIZE = int(os.getenv('DEFAULT_PAGE_SIZE', 20))
 
@@ -53,7 +46,3 @@ def log_time(msg: str):
         return wrapper
 
     return decorator
-
-
-# Configurando o Flask
-flask_app = Flask('app')

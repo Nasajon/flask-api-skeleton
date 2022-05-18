@@ -1,24 +1,25 @@
 version: '2'
 
 services:
-    # app:
-    #     image: nasajon/php:7.1-fpm-symfony-dev
-    #     restart: always
-    #     ports:
-    #         - "80:80"
-    #     volumes:
-    #         - $PWD:/var/www/html        
-    #     env_file:
-    #         - common.env
+  app:
+    build: .
+    ports:
+      - '80:80'
+      - '5000:5000'
+    command: sh -c "apk update && apk --update --upgrade add gcc musl-dev jpeg-dev zlib-dev libffi-dev cairo-dev pango-dev gdk-pixbuf-dev && apk --update add tzdata && apk add --no-cache mariadb-dev && python3 -m pip install -r requirements.txt && echo "America/Sao_Paulo" >  /etc/timezone && /entrypoint.sh"
+    volumes:
+      - .:/var/www/html
+    env_file:
+      - common.env
 
-    postgres:
-       image: postgres:11.5
-       ports:
-         - "5440:5432"
-       restart: always
-       volumes:
-           - $PWD/database/dump:/docker-entrypoint-initdb.d/
-       environment:
-           - "POSTGRES_DB=projeto"
-           - "POSTGRES_USER=projeto"
-           - "POSTGRES_PASSWORD=mysecretpassword"  
+  postgres:
+    image: postgres:11.5
+    ports:
+      - "5440:5432"
+    restart: always
+    volumes:
+      - $PWD/database/dump:/docker-entrypoint-initdb.d/
+    environment:
+      - "POSTGRES_DB=projeto"
+      - "POSTGRES_USER=projeto"
+      - "POSTGRES_PASSWORD=mysecretpassword"
