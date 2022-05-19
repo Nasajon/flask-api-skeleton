@@ -2,7 +2,7 @@ from flask import jsonify, request
 from flask.views import MethodView
 from nsj_gcf_utils.pagination_util import page_body, PaginationException
 from nsj_gcf_utils.rest_error_util import format_json_error
-from app.oauth_config import require_oauth
+from nasajon.oauth_config import require_oauth
 from pydantic import ValidationError
 
 
