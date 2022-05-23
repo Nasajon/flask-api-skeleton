@@ -1,10 +1,10 @@
 import uuid
 
-from app.dao.clientes_dao import ClientesDAO
-from app.dto.cliente_get_dto import ClienteGetDTO
-from app.dto.cliente_post import ClientePostDTO
-from app.dto.cliente_post_resp import ClientePostResponseDTO
-from app.entity.cliente import Cliente
+from nasajon.dao.clientes_dao import ClientesDAO
+from nasajon.dto.cliente_get_dto import ClienteGetDTO
+from nasajon.dto.cliente_post import ClientePostDTO
+from nasajon.dto.cliente_post_resp import ClientePostResponseDTO
+from nasajon.entity.cliente import Cliente
 from nsj_gcf_utils.dto_util import convert_to
 
 

@@ -56,4 +56,4 @@ def log_time(msg: str):
 
 
 # Configurando o Flask
-flask_app = Flask('app')
+application = Flask('app')

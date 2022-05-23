@@ -1,7 +1,7 @@
 import uuid
 
-from app.settings import log_time
-from app.entity.cliente import Cliente
+from nasajon.settings import log_time
+from nasajon.entity.cliente import Cliente
 
 from nsj_gcf_utils.db_adapter2 import DBAdapter2
 from nsj_gcf_utils.exception import NotFoundException

@@ -1,20 +1,21 @@
 version: '2'
 
 services:
-    # app:
-    #     image: nasajon/php:7.1-fpm-symfony-dev
-    #     restart: always
-    #     ports:
-    #         - "80:80"
-    #     volumes:
-    #         - $PWD:/var/www/html        
-    #     env_file:
-    #         - common.env
+    app:
+        image: arquiteturansj/flask:2.0
+        restart: always
+        ports:
+            - "80:80"
+        volumes:
+            - $PWD:/var/www/html        
+        env_file:
+            - .env
+        command: sh -c "python3 -m pip install -r /var/www/html/requirements.txt --no-cache-dir && /entrypoint.sh"
 
     postgres:
        image: postgres:11.5
        ports:
-         - "5440:5432"
+         - "5432:5432"
        restart: always
        volumes:
            - $PWD/database/dump:/docker-entrypoint-initdb.d/
