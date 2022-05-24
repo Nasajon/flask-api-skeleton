@@ -6,13 +6,13 @@ services:
         restart: always
         ports:
             - "80:80"
-            - "9000:9000"
+            - "5678:5678"
         volumes:
             - $PWD:/var/www/html        
             - $PWD/wsgi.ini:/etc/wsgi/wsgi.ini
         env_file:
             - .env
-        command: sh -c "python3 -m pip install -r /var/www/html/requirements.txt && /entrypoint.sh"
+        command: sh -c "python3 -m pip install -r /var/www/html/requirements.txt --no-cache-dir && /entrypoint.sh"
 
     postgres:
        image: postgres:11.5

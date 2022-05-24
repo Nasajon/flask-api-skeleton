@@ -4,5 +4,4 @@ pg8000==1.24.1
 nsj_gcf_utils==1.0.1
 pydantic==1.9.0
 authlib==1.0.0
-ptvsd
-debugpy
+ptvsd==4.3.2
