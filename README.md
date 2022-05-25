@@ -28,7 +28,7 @@ Assim, será apresentada a configuração de um ambiente local (usado docker ape
 > git clone git@github.com:Nasajon/flask-api-skeleton.git
 
 2. Crie uma cópia local do arquivo `.env.dist`, renomeando a mesma para `.env`.
-3. Ajuste as variáveis de ambiente sem conteúdo, no arquivo `.env.fist` (consulte a seção sobre "Variáveis de ambiente" mais à frente).
+3. Ajuste as variáveis de ambiente sem conteúdo no arquivo `.env` (consulte a seção sobre "Variáveis de ambiente" mais à frente).
 4. Crie um ambiente virtual python3:
 > python3 -m venv .venv
 5. Inicie o ambiente virtual.
@@ -36,9 +36,9 @@ Assim, será apresentada a configuração de um ambiente local (usado docker ape
 6. Instale as dependências do projeto.
 > pip install -r requirements.txt
 7. Inicie o BD pelo docker 
-> docker-copmose up -d postgres
+> docker-compose up -d postgres
 8. Inicie o servidor de desenvolvimento do flask:
-> make run_local
+> docker-compose up -d app
 
 ### Testes manuais
 
@@ -86,7 +86,7 @@ O projeto esqueleto vem definido já depente das seguintes variáveis de ambient
 O projeto foi organizado com a seguinte sugestão de padrão (apenas os artefatos mais significativos serão apresentados):
 
 ```
-- app (diretório raiz do código fonte)
+- nasajon (diretório raiz do código fonte)
 |- controller (implementação das rotas disponibilizadas pelo aplicação)
 |- dao (implementação das classes de comunicação com o BD, centralizando as queries SQL)
 |- dto (data transfer object: classes de modelo utilizadas para definir os formatos de entrada e saída do sistema)
@@ -94,7 +94,7 @@ O projeto foi organizado com a seguinte sugestão de padrão (apenas os artefato
 |- service (implementação das regras de negócio, e manipulação dos modelos, contendo inclusive as conversões DTOs <=> Entity)
 |- db_poll_config.py (configuração do poll de conexões com o BD)
 |- injector_factory.py (controlador de injeção de dependências, que deve crescer manualmente, sendo capaz de instanciar as classes de modo hierárquico, provendo, por meio dos construtores, as dependências necessárias a cada classe)
-|- main.py (PONTO DE ENTRADA principal da aplicação; cada novo controller deve ser importado neste arquivo, para que suas rotas de fato existam na aplicaçao em execução)
+|- wsgi.py (PONTO DE ENTRADA principal da aplicação; cada novo controller deve ser importado neste arquivo, para que suas rotas de fato existam na aplicaçao em execução)
 |- oauht_config.py (implementação da autorização; é deste arquivo que se deve importar o decorator "require_oauth" a ser adicionado em cada método de definição das rotas da aplicação)
 |- settings.py (configuração geral da aplicação, lendo variáveis de ambiente, instanciando a "aplicação flask", instanciando o logger, etc)
 - database (diretório para fins didáticos, contendo um esqueleto de BD utilizado pela imagem docker "postgres")
@@ -120,10 +120,11 @@ A aplicação de exemplo disponibilizada, conta com apenas uma tabela de banco, 
 | documento  | varchar(14) not null  | Não definido       | Documento de identificação d cliente                                                                 |
 | created_at | timestamp not null    | now()              | Data e hora de criação do registro                                                                   |
 
-
 ### Imagens docker
 
-Por hora, apenas está sendo utilizada uma imagem docker (ver arquivo `docker-compose.yml`)
+Imagens usados no `docker-compose.yml` para rodar o projeto.
+
+* __arquiteturansj/flask:2.0__: Imagem para inicializar o flask com wsgi e nginx.
 
 * __postgres:11.5__: Imagem para instanciação do BD de exemplo da aplicação.
 
@@ -145,7 +146,7 @@ Esse exceço de objetos pode parecer burocrático, mas se encaixa muito bem com 
 
 No "pior caso", cada rota pode conter seu próprio DTO de entrada (deinindo o formato específico esperado, bem como as obrigatoriedades de propriedades), e também seu próprio DTO de saída (retornando apenas os dados que interessam a rota em questão).
 
-Caso hajam muitos DTOs, sugere-se organizar o diretório `app/dto` em subdiretórios (por rota).
+Caso hajam muitos DTOs, sugere-se organizar o diretório `nasajon/dto` em subdiretórios (por rota).
 
 Por fim, vale destacar que esse formato pode parece difícil de usar, mas, em linguagens como python, a conversão entre DTOs e fáil o suficiente para ser pouco influente (e evita erros imprevistos). Além disso, o utilitário `dto_util` foi providenciado (no pacote _nsj_gcf_utils_, declarado no _requirements.txt_) para estas conversões (conforme pode-se ver na implementação do `ClientesService`).
 
@@ -189,4 +190,10 @@ Diferentemente de outras aplicações Nasajon, o biblioteca `Authlib` acaba por 
 
 Além disso, em lugar de se validar os tokens recebidos por meio da rota OAuth _UserInfo_, se optou pela utilização da rota OAuth _Token Introspection_, por ser esta mais segura para o _Athentication Server_. Sugere-se [ver nosso guidelines](https://github.com/Nasajon/Arquitetura/blob/master/Backend/arquitetura-de-APIs/padroes-seguranca.md#token-instrospection).
 
-Por fim, para definir que uma rota requer autenticação, é preciso utilizar o decorator `require_oauth` no cabecalho do respectivo método de implementação da rota (sugere-se ver os exemplos contidos no arquivo `app/controller/clientes_controller.py`).
+Por fim, para definir que uma rota requer autenticação, é preciso utilizar o decorator `require_oauth` no cabecalho do respectivo método de implementação da rota (sugere-se ver os exemplos contidos no arquivo `nasajon/controller/clientes_controller.py`).
+
+### Debug no VSCode
+
+Para debuggar pelo VSCode, abra um arquivo python e aperte F5, selecione a opção `Remote Attach`, coloque localhost na primeira caixa de texto e 5678 na segunda caixa de texto.Assim o VSCode irá se conectar à aplicação para poder debugar normalmente.
+
+Obs: As vezes é necessário fazer requisições para a aplicação para o VSCode conseguir se conectar antes de poder debugar. Então é bom fazer a requisição para uma rota sem problemas até o VSCode se conectar (pode ser identificado pois o ícone de parar muda para o ícone de desconectar).
