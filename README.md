@@ -39,6 +39,9 @@ Assim, será apresentada a configuração de um ambiente local (usado docker ape
 > docker-compose up -d postgres
 8. Inicie o servidor de desenvolvimento do flask:
 > docker-compose up -d app
+9. Caso o código seja alterado, é necessário reiniciar o app:
+> docker-compose stop app
+> docker-compose up -d app
 
 ### Testes manuais
 
