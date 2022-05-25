@@ -1,7 +1,7 @@
 import requests
 from authlib.oauth2.rfc7662 import IntrospectTokenValidator
 from authlib.integrations.flask_oauth2 import ResourceProtector
-from app.settings import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_TOKEN_INTROSPECTION_URL
+from nasajon.settings import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_TOKEN_INTROSPECTION_URL
 
 
 class MyIntrospectTokenValidator(IntrospectTokenValidator):

@@ -54,6 +54,9 @@ def log_time(msg: str):
 
     return decorator
 
+# Importando e abrindo ouvinte para conexão remota
+import ptvsd
+ptvsd.enable_attach(("0.0.0.0",5678))
 
 # Configurando o Flask
-flask_app = Flask('app')
+application = Flask('app')

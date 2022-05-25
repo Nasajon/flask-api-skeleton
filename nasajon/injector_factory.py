@@ -5,7 +5,7 @@ class InjectorFactory:
     _db_connection: Connection
 
     def __enter__(self):
-        from app.db_pool_config import db_pool
+        from nasajon.db_pool_config import db_pool
         self._db_connection = db_pool.connect()
 
         return self
@@ -19,10 +19,10 @@ class InjectorFactory:
 
     # DAOs
     def clientes_dao(self):
-        from app.dao.clientes_dao import ClientesDAO
+        from nasajon.dao.clientes_dao import ClientesDAO
         return ClientesDAO(self.db_adapter())
 
     # SERVICES
     def clientes_service(self):
-        from app.service.clientes_service import ClientesService
+        from nasajon.service.clientes_service import ClientesService
         return ClientesService(self.clientes_dao())
