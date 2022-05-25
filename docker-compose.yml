@@ -9,7 +9,7 @@ services:
             - "5678:5678"
         volumes:
             - $PWD:/var/www/html        
-            - $PWD/wsgi.ini:/etc/wsgi/wsgi.ini
+            - $PWD/wsgi_dev.ini:/etc/wsgi/wsgi.ini
         env_file:
             - .env
         command: sh -c "python3 -m pip install -r /var/www/html/requirements.txt --no-cache-dir && /entrypoint.sh"
