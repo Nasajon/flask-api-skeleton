@@ -1,3 +1,4 @@
+import ptvsd
 import os
 import logging
 import sys
@@ -21,6 +22,8 @@ DEFAULT_PAGE_SIZE = int(os.getenv('DEFAULT_PAGE_SIZE', 20))
 OAUTH_CLIENT_ID = os.environ['OAUTH_CLIENT_ID']
 OAUTH_CLIENT_SECRET = os.environ['OAUTH_CLIENT_SECRET']
 OAUTH_TOKEN_INTROSPECTION_URL = os.environ['OAUTH_TOKEN_INTROSPECTION_URL']
+
+APIKEY_VALIDATE_URL = os.getenv('APIKEY_VALIDATE_URL')
 
 # Configurando o logger
 logger = logging.getLogger(APP_NAME)
@@ -54,9 +57,9 @@ def log_time(msg: str):
 
     return decorator
 
+
 # Importando e abrindo ouvinte para conexão remota
-import ptvsd
-ptvsd.enable_attach(("0.0.0.0",5678))
+ptvsd.enable_attach(("0.0.0.0", 5678))
 
 # Configurando o Flask
 application = Flask('app')

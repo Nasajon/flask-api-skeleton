@@ -12,6 +12,7 @@ Por fim, vale destacar que o próprio skeleton já foi desenvolvido como um API 
 * `GET /1234/clientes` - Listagem páginada de clientes
 * `GET /1234/clientes/{id}` - Retrieve de um único cliente
 * `POST /1234/clientes` - Gravação de um novo cliente
+* `GET /ping` - Retorna um JSON contendo uma mensagem "Pong!".
 * `GET /token-info` - Retorna um JSON contendo as informações básicas contidas no Acess Tokeb recebido.
 
 _(*) Cabe fazer a ressalva de que o Flask é veículado na web como framework web, uma vez que implemente o necessário para efetiva comunicação HTTP, além de contar com diversas bibliotecas adicionais, capazes de prover funcionalidades adicionais comuns aos frameworks web. Mesmo assim, diferente de outros frameworks, o Flask não impõe padrões rígidos ao programador, e é distribuído de modo extremamente minimalista (carecendo da instalação de muitos complementos). Logo, pode-se também dizer, com certa razoabilidade, que o Flask se apresenta mais como uma biblioteca web, do que como um framework de fato (a não ser pelo fato de implementar o ciclo básico da comunicação HTTP, deixando para o programador tarefas mais alto nível). E, essa resslava é importante para justificar a liberdade de organização do repositório (conforme apresentado a seguir)._
@@ -83,6 +84,13 @@ O projeto esqueleto vem definido já depente das seguintes variáveis de ambient
 | OAUTH_CLIENT_ID               | Sim         | Client ID para comunicação com o Authentication Server (no padrão OAuth), e validação de cada `acess_token` recebido (por meio do padrão _Token Introspection_.                                                             |
 | OAUTH_CLIENT_SECRET           | Sim         | Cliente Secret para validação dos tokens (complementar ao Cliente ID, acima descrito).                                                                                                                                      |
 | OAUTH_TOKEN_INTROSPECTION_URL | Sim         | URL para o endpoint de _Token Instrospection_, do Authentication Server ([ver nosso guidelines](https://github.com/Nasajon/Arquitetura/blob/master/Backend/arquitetura-de-APIs/padroes-seguranca.md#token-instrospection)). |
+
+#### Variável Autenticação por API-Key
+
+| Variável            | Obrigatória | Descrição                                                 |
+| ------------------- | ----------- | --------------------------------------------------------- |
+| APIKEY_VALIDATE_URL | Não         | URL (do Diretório) para validação de uma APIKey recebida. |
+
 
 ### Estrutura de diretórios
 
@@ -187,6 +195,8 @@ A saber, o `DBAdapter2` é uma evolução do `DBAdpater` (desenolvido no projeto
 
 Por hora, apenas a autenticação está desenvolvida na aplicação de exemplo (espera-se providenciar em breve a autorização).
 
+#### OAuth
+
 Para cumprir o requisito de autenticação, por meio do OAuth (se integrando com o Authentication Server da Nasajon, implementado por meio do KeyCloack), foi utilizada a biblioteca python `Authlib` (muito popular na comunidade python).
 
 Diferentemente de outras aplicações Nasajon, o biblioteca `Authlib` acaba por exigir o termo "Bearer" no token de autenticação, passado para as rotas, por meio do header "Authorization" (o que na verdade é um padrão de mercado, para idetificação do tipo de token passado).
@@ -194,6 +204,18 @@ Diferentemente de outras aplicações Nasajon, o biblioteca `Authlib` acaba por 
 Além disso, em lugar de se validar os tokens recebidos por meio da rota OAuth _UserInfo_, se optou pela utilização da rota OAuth _Token Introspection_, por ser esta mais segura para o _Athentication Server_. Sugere-se [ver nosso guidelines](https://github.com/Nasajon/Arquitetura/blob/master/Backend/arquitetura-de-APIs/padroes-seguranca.md#token-instrospection).
 
 Por fim, para definir que uma rota requer autenticação, é preciso utilizar o decorator `require_oauth` no cabecalho do respectivo método de implementação da rota (sugere-se ver os exemplos contidos no arquivo `nasajon/controller/clientes_controller.py`).
+
+#### API-Key
+
+É possível definir que uma rota aceite autenticação por meio do uso de API-Keys, em lugar de autenticação OAuth. E, [conforme instrução do Guidelines da empresa](https://github.com/Nasajon/Arquitetura/blob/master/Backend/arquitetura-de-APIs/padroes-seguranca.md#api-keys), esse tipo de autenticação é mais adequado para comunicação entre sistemas (dispensando a complexidade do fluxo OAuth).
+
+Esse tipo de autenticação é providenciada por meio da aplicação Diretório Nasajon, por meio da qual é possível gerar API-Keys para as diversas aplicações registradas no mesmo.
+
+Para definir que uma rota requer esse tipo de autenticação, basta preencher a variável  de ambiente `APIKEY_VALIDATE_URL` (com a respectiva URL de validação do Diretório), e utilizar o decorator `require_apikey` no cabecalho do respectivo método de implementação da rota (sugere-se ver os exemplos contidos no arquivo `nasajon/controller/ping_controller.py`).
+
+Obs. 1: Ainda não suportamos o uso concomitante de ambos os tipos de autenticação numa mesma rota.
+
+Obs. 2: A autenticação via API-Key suporta receber a chave tanto pelo header `apikey`, quanto pelo `X-API-Key` (ver o arquivo `rest/ping.rest`).
 
 ### Debug no VSCode
 
