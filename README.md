@@ -18,10 +18,6 @@ Por fim, vale destacar que o próprio skeleton já foi desenvolvido como um API 
 _(*) Cabe fazer a ressalva de que o Flask é veículado na web como framework web, uma vez que implemente o necessário para efetiva comunicação HTTP, além de contar com diversas bibliotecas adicionais, capazes de prover funcionalidades adicionais comuns aos frameworks web. Mesmo assim, diferente de outros frameworks, o Flask não impõe padrões rígidos ao programador, e é distribuído de modo extremamente minimalista (carecendo da instalação de muitos complementos). Logo, pode-se também dizer, com certa razoabilidade, que o Flask se apresenta mais como uma biblioteca web, do que como um framework de fato (a não ser pelo fato de implementar o ciclo básico da comunicação HTTP, deixando para o programador tarefas mais alto nível). E, essa resslava é importante para justificar a liberdade de organização do repositório (conforme apresentado a seguir)._
 ## Ambiente de Desenvolvimento
 
-Por hora, o ambiente de desenvovimento do projeto ainda não conta com imagem docker para execução do Flask (o que se deseja providenciar um breve).
-
-Assim, será apresentada a configuração de um ambiente local (usado docker apenas para o BD).
-
 ### Passos para configuração
 
 1. Clone o projeto:
