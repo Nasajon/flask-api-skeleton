@@ -2,7 +2,7 @@ version: '2'
 
 services:
     app:
-        image: arquiteturansj/flask:2.0
+        image: arquiteturansj/flask:2.2
         restart: always
         ports:
             - "80:80"

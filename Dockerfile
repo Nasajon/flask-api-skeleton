@@ -1,4 +1,4 @@
-FROM arquiteturansj/flask:2.0
+FROM arquiteturansj/flask:2.2
 
 WORKDIR /var/www/html
 
