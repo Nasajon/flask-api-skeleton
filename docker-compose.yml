@@ -8,20 +8,20 @@ services:
             - "80:80"
             - "5678:5678"
         volumes:
-            - $PWD:/var/www/html        
+            - $PWD:/var/www/html
             - $PWD/wsgi_dev.ini:/etc/wsgi/wsgi.ini
         env_file:
             - .env
         command: sh -c "python3 -m pip install -r /var/www/html/requirements.txt --no-cache-dir && /entrypoint.sh"
 
     postgres:
-       image: postgres:11.5
-       ports:
-         - "5432:5432"
-       restart: always
-       volumes:
-           - $PWD/database/dump:/docker-entrypoint-initdb.d/
-       environment:
-           - "POSTGRES_DB=projeto"
-           - "POSTGRES_USER=projeto"
-           - "POSTGRES_PASSWORD=mysecretpassword"  
+        image: postgres:11.5
+        ports:
+            - "5440:5432"
+        restart: always
+        volumes:
+            - $PWD/database/dump:/docker-entrypoint-initdb.d/
+        environment:
+            - "POSTGRES_DB=projeto"
+            - "POSTGRES_USER=projeto"
+            - "POSTGRES_PASSWORD=mysecretpassword"

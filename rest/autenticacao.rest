@@ -6,6 +6,14 @@ content-type: application/x-www-form-urlencoded
 
 client_id=erp_api&scope=offline_access&grant_type=password&username=wallacepinho%40nasajon.com.br&password=123456
 
+#######################################
+# Autenticação para token off-line QA #
+#######################################
+POST https://auth.nasajonsistemas.com.br/auth/realms/QA/protocol/openid-connect/token HTTP/1.1
+content-type: application/x-www-form-urlencoded
+
+client_id=erp_api&scope=offline_access&grant_type=password&username=wallacepinho%40nasajon.com.br&password=123456
+
 #########################################
 # Autenticação para token off-line PROD #
 #########################################
