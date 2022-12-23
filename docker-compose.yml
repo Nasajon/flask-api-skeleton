@@ -26,3 +26,22 @@ services:
             - "POSTGRES_DB=projeto"
             - "POSTGRES_USER=projeto"
             - "POSTGRES_PASSWORD=mysecretpassword"
+
+    rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        restart: always
+        environment:
+            - RABBITMQ_DEFAULT_VHOST=skeleton
+
+    async_order_worker:
+        image: arquiteturansj/flask:2.2
+        restart: always
+        volumes:
+            - $PWD:/var/www/html
+            - $PWD/logs/worker:/var/log/nasajon
+        env_file:
+            - .env
+        command: sh -c "python3 -m pip install -r /var/www/html/requirements.txt --no-cache-dir && python3 -m nasajon.worker.async_order_worker"

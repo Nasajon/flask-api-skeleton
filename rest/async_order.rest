@@ -1,0 +1,11 @@
+####################
+# POST Async Order #
+####################
+POST http://localhost:5000/app/1234/async-orders HTTP/1.1
+Authorization: Bearer ************
+Content-Type: application/json
+Accept: application/json
+
+{
+    "msg": "Teste de mensagem."
+}

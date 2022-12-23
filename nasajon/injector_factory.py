@@ -26,3 +26,7 @@ class InjectorFactory:
     def clientes_service(self):
         from nasajon.service.clientes_service import ClientesService
         return ClientesService(self.clientes_dao())
+
+    def async_order_service(self):
+        from nasajon.service.async_order_service import AsynOrderService
+        return AsynOrderService()

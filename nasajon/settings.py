@@ -26,6 +26,10 @@ API_KEY = os.environ['API_KEY']
 LOG_FILE_PATH = os.getenv(
     'LOG_FILE_PATH', f"/var/log/nasajon/exec.log")
 
+RABBITMQ_HOST = os.environ['RABBITMQ_HOST']
+RABBITMQ_VHOST = os.environ['RABBITMQ_VHOST']
+ASYNC_QUEUE_NAME = os.environ['ASYNC_QUEUE_NAME']
+
 # Configurando o logger
 logger = logging.getLogger(APP_NAME)
 if DEBUG:

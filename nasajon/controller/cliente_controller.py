@@ -5,7 +5,7 @@ from nasajon.auth import auth
 from nasajon.controller.controller_util import DEFAULT_RESP_HEADERS
 from nasajon.dto.cliente_post import ClientePostDTO
 from nasajon.injector_factory import InjectorFactory
-from nasajon.settings import application, APP_NAME, DEFAULT_PAGE_SIZE, MOPE_CODE
+from nasajon.settings import application, logger, APP_NAME, DEFAULT_PAGE_SIZE, MOPE_CODE
 
 from nsj_gcf_utils.exception import NotFoundException
 from nsj_gcf_utils.json_util import convert_to_dumps, json_dumps, json_loads
@@ -44,8 +44,12 @@ def get_clientes():
 
             return (json_dumps(page), 200, {**DEFAULT_RESP_HEADERS})
         except PaginationException as e:
+            logger.exception(
+                f"Erro de paginação na listagem de clientes: {e}")
             return (format_json_error(e), 400, {**DEFAULT_RESP_HEADERS})
         except Exception as e:
+            logger.exception(
+                f"Erro desconhecido na listagem de clientes: {e}")
             return (format_json_error(f'Erro desconhecido: {e}'), 500, {**DEFAULT_RESP_HEADERS})
 
 
@@ -59,8 +63,12 @@ def get_cliente_by_id(id: str):
 
             return (json_dumps(data), 200, {**DEFAULT_RESP_HEADERS})
         except NotFoundException as e:
+            logger.warning(
+                f"Clientes não encontrado: {e}")
             return (format_json_error(f'{e}'), 404, {**DEFAULT_RESP_HEADERS})
         except Exception as e:
+            logger.exception(
+                f"Erro desconhecido na recuperação de um cliente: {e}")
             return (format_json_error(f'Erro desconhecido: {e}'), 500, {**DEFAULT_RESP_HEADERS})
 
 
@@ -78,6 +86,10 @@ def post_cliente():
 
             return (json_dumps(data_resp), 200, {**DEFAULT_RESP_HEADERS})
         except ValidationError as e:
+            logger.warning(
+                f"Erro desconhecido na interpretação do JSON de um novo cliente: {e}")
             return (format_json_error(e), 400, {**DEFAULT_RESP_HEADERS})
         except Exception as e:
+            logger.exception(
+                f"Erro desconhecido na gravação de um novo cliente: {e}")
             return (format_json_error(f'Erro desconhecido: {e}'), 500, {**DEFAULT_RESP_HEADERS})
