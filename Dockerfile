@@ -1,5 +1,7 @@
 FROM arquiteturansj/flask:2.2
 
+RUN mkdir /var/log/nasajon
+
 WORKDIR /var/www/html
 
 COPY . /var/www/html

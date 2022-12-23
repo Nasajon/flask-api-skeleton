@@ -1,11 +1,10 @@
-from nasajon.settings import application, APIKEY_VALIDATE_URL
+from nasajon.controller.controller_util import DEFAULT_RESP_HEADERS
+from nasajon.settings import application, APP_NAME
 from nsj_gcf_utils.json_util import json_dumps
-from nasajon.api_key_authentication import require_apikey
 
-GET_ROUTE = f'/ping'
+GET_ROUTE = f'/{APP_NAME}/ping'
 
 
 @application.route(GET_ROUTE, methods=['GET'])
-@require_apikey(APIKEY_VALIDATE_URL)
 def get_ping():
-    return (json_dumps({"msg": "Pong!"}), 200, {})
+    return (json_dumps({"msg": "Pong!"}), 200, {**DEFAULT_RESP_HEADERS})

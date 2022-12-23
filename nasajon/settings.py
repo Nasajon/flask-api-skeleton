@@ -19,11 +19,12 @@ DATABASE_USER = os.environ['DATABASE_USER']
 
 DEFAULT_PAGE_SIZE = int(os.getenv('DEFAULT_PAGE_SIZE', 20))
 
-OAUTH_CLIENT_ID = os.environ['OAUTH_CLIENT_ID']
-OAUTH_CLIENT_SECRET = os.environ['OAUTH_CLIENT_SECRET']
-OAUTH_TOKEN_INTROSPECTION_URL = os.environ['OAUTH_TOKEN_INTROSPECTION_URL']
+DIRETORIO_URL = os.environ['DIRETORIO_URL']
+PROFILE_URL = os.environ['PROFILE_URL']
+API_KEY = os.environ['API_KEY']
 
-APIKEY_VALIDATE_URL = os.getenv('APIKEY_VALIDATE_URL')
+LOG_FILE_PATH = os.getenv(
+    'LOG_FILE_PATH', f"/var/log/nasajon/exec.log")
 
 # Configurando o logger
 logger = logging.getLogger(APP_NAME)
@@ -33,14 +34,19 @@ else:
     logger.setLevel(logging.INFO)
 
 console_handler = logging.StreamHandler(sys.stdout)
+file_handler = logging.FileHandler(
+    filename=LOG_FILE_PATH)
 
 console_format = logging.Formatter(
     '%(name)s - %(levelname)s - %(message)s')
 file_format = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
 console_handler.setFormatter(console_format)
+file_handler.setFormatter(file_format)
 
 logger.addHandler(console_handler)
+logger.addHandler(file_handler)
 
 
 def log_time(msg: str):
@@ -48,9 +54,10 @@ def log_time(msg: str):
 
     def decorator(function):
         def wrapper(*arg, **kwargs):
-            t = time.time()
+            t = time.perf_counter()
             res = function(*arg, **kwargs)
-            logger.info(f'----- {str(time.time()-t)} seconds --- {msg}')
+            logger.debug(
+                f'{msg} - Tempo de resposta: {str(round(time.perf_counter()-t, 3))} segundos.')
             return res
 
         return wrapper

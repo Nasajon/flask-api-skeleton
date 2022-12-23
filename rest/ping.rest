@@ -1,6 +1,5 @@
 ########
 # Ping #
 ########
-GET http://localhost:5000/ping HTTP/1.1
-X-API-Key: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzaXN0ZW1hIjozMTMsInRpcG8iOiJzaXN0ZW1hIn0.-NyjvdNNsWiwLzmU6NoOVCgJJk4rj2TBsGB8K_Vge8g
+GET http://localhost:5000/app/ping HTTP/1.1
 Accept: application/json

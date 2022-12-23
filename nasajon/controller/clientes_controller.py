@@ -1,20 +1,23 @@
+from flask import request
+from pydantic import ValidationError
+
+from nasajon.auth import auth
+from nasajon.controller.controller_util import DEFAULT_RESP_HEADERS
 from nasajon.dto.cliente_post import ClientePostDTO
 from nasajon.injector_factory import InjectorFactory
-from nasajon.settings import DEFAULT_PAGE_SIZE, application, MOPE_CODE
-from flask import request
+from nasajon.settings import application, APP_NAME, DEFAULT_PAGE_SIZE, MOPE_CODE
+
 from nsj_gcf_utils.exception import NotFoundException
 from nsj_gcf_utils.json_util import convert_to_dumps, json_dumps, json_loads
 from nsj_gcf_utils.pagination_util import page_body, PaginationException
 from nsj_gcf_utils.rest_error_util import format_json_error
-from nasajon.oauth_config import require_oauth
-from pydantic import ValidationError
 
-GET_ROUTE = f'/{MOPE_CODE}/clientes/<id>'
-LIST_POST_ROUTE = f'/{MOPE_CODE}/clientes'
+GET_ROUTE = f'/{APP_NAME}/{MOPE_CODE}/clientes/<id>'
+LIST_POST_ROUTE = f'/{APP_NAME}/{MOPE_CODE}/clientes'
 
 
 @application.route(LIST_POST_ROUTE, methods=['GET'])
-@require_oauth()
+@auth.requires_api_key_or_access_token()
 def get_clientes():
     with InjectorFactory() as factory:
         try:
@@ -39,30 +42,30 @@ def get_clientes():
                 id_field='id'
             )
 
-            return (json_dumps(page), 200, {})
+            return (json_dumps(page), 200, {**DEFAULT_RESP_HEADERS})
         except PaginationException as e:
-            return (format_json_error(e), 400, {})
+            return (format_json_error(e), 400, {**DEFAULT_RESP_HEADERS})
         except Exception as e:
-            return (format_json_error(f'Erro desconhecido: {e}'), 500, {})
+            return (format_json_error(f'Erro desconhecido: {e}'), 500, {**DEFAULT_RESP_HEADERS})
 
 
 @application.route(GET_ROUTE, methods=['GET'])
-@require_oauth()
+@auth.requires_api_key_or_access_token()
 def get_cliente_by_id(id: str):
     with InjectorFactory() as factory:
         try:
             service = factory.clientes_service()
             data = service.get(id)
 
-            return (json_dumps(data), 200, {})
+            return (json_dumps(data), 200, {**DEFAULT_RESP_HEADERS})
         except NotFoundException as e:
-            return (format_json_error(f'{e}'), 404, {})
+            return (format_json_error(f'{e}'), 404, {**DEFAULT_RESP_HEADERS})
         except Exception as e:
-            return (format_json_error(f'Erro desconhecido: {e}'), 500, {})
+            return (format_json_error(f'Erro desconhecido: {e}'), 500, {**DEFAULT_RESP_HEADERS})
 
 
 @application.route(LIST_POST_ROUTE, methods=['POST'])
-@require_oauth()
+@auth.requires_api_key_or_access_token()
 def post_cliente():
     with InjectorFactory() as factory:
         try:
@@ -73,8 +76,8 @@ def post_cliente():
             service = factory.clientes_service()
             data_resp = service.insert(data)
 
-            return (json_dumps(data_resp), 200, {})
+            return (json_dumps(data_resp), 200, {**DEFAULT_RESP_HEADERS})
         except ValidationError as e:
-            return (format_json_error(e), 400, {})
+            return (format_json_error(e), 400, {**DEFAULT_RESP_HEADERS})
         except Exception as e:
-            return (format_json_error(f'Erro desconhecido: {e}'), 500, {})
+            return (format_json_error(f'Erro desconhecido: {e}'), 500, {**DEFAULT_RESP_HEADERS})

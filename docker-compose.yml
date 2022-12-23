@@ -5,11 +5,12 @@ services:
         image: arquiteturansj/flask:2.2
         restart: always
         ports:
-            - "80:80"
+            - "5000:80"
             - "5678:5678"
         volumes:
             - $PWD:/var/www/html
             - $PWD/wsgi_dev.ini:/etc/wsgi/wsgi.ini
+            - $PWD/logs:/var/log/nasajon
         env_file:
             - .env
         command: sh -c "python3 -m pip install -r /var/www/html/requirements.txt --no-cache-dir && /entrypoint.sh"
