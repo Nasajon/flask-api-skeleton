@@ -36,11 +36,11 @@ class AsyncWorkerBase:
             ch.basic_ack(delivery_tag=method.delivery_tag)
         except ValidationError as e:
             logger.exception(f"Erro interpretando o JSON da mensagem: {e}")
-            ch.basic_nack(delivery_tag=method.delivery_tag)
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
         except Exception as e:
             logger.exception(
                 f"Erro desconhecido processamento a mensagem: {e}")
-            ch.basic_nack(delivery_tag=method.delivery_tag)
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
 
     def main(self):
         logger.info("Iniciando o worker...")
