@@ -1,15 +1,19 @@
+import os
 import pika
+import sys
 
 from pydantic import BaseModel, ValidationError
 
-from nasajon.settings import logger, ASYNC_QUEUE_NAME, RABBITMQ_HOST, RABBITMQ_VHOST
+from nasajon.settings import logger, RABBITMQ_HOST, RABBITMQ_VHOST
 
 from nsj_gcf_utils.json_util import json_loads
 
 
 class AsyncWorkerBase:
-    def __init__(self, dto_class: BaseModel):
+
+    def __init__(self, async_queue_name: str, dto_class: BaseModel):
         super().__init__()
+        self._async_queue_name = async_queue_name
         self._dto_class = dto_class
 
     def execute(self, msg_obj: BaseModel):
@@ -43,24 +47,32 @@ class AsyncWorkerBase:
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
 
     def main(self):
-        logger.info("Iniciando o worker...")
+        try:
+            logger.info("Iniciando o worker...")
 
-        with pika.BlockingConnection(
-            pika.ConnectionParameters(
-                host=RABBITMQ_HOST,
-                virtual_host=RABBITMQ_VHOST
-            )
-        ) as connection:
-            channel = connection.channel()
+            with pika.BlockingConnection(
+                pika.ConnectionParameters(
+                    host=RABBITMQ_HOST,
+                    virtual_host=RABBITMQ_VHOST
+                )
+            ) as connection:
+                channel = connection.channel()
 
-            channel.queue_declare(queue=ASYNC_QUEUE_NAME, durable=True)
+                channel.queue_declare(
+                    queue=self._async_queue_name, durable=True)
 
-            channel.basic_qos(prefetch_count=1)
-            channel.basic_consume(queue=ASYNC_QUEUE_NAME,
-                                  on_message_callback=self.callback)
+                channel.basic_qos(prefetch_count=1)
+                channel.basic_consume(queue=self._async_queue_name,
+                                      on_message_callback=self.callback)
 
-            logger.info(
-                f"Worker {self.__class__.__name__} iniciado. Precione CTRL+C para sair.")
-            logger.info(
-                f"Aguardando por uma mensagem...")
-            channel.start_consuming()
+                logger.info(
+                    f"Worker {self.__class__.__name__} iniciado. Precione CTRL+C para sair.")
+                logger.info(
+                    f"Aguardando por uma mensagem...")
+                channel.start_consuming()
+        except KeyboardInterrupt:
+            logger.info('Keyboard Interrupt (worker interrompido).')
+            try:
+                sys.exit(0)
+            except SystemExit:
+                os._exit(0)
