@@ -11,10 +11,11 @@ from nsj_gcf_utils.json_util import json_loads
 
 class AsyncWorkerBase:
 
-    def __init__(self, async_queue_name: str, dto_class: BaseModel):
+    def __init__(self, async_queue_name: str, dto_class: BaseModel, queue_ttl=3600):
         super().__init__()
         self._async_queue_name = async_queue_name
         self._dto_class = dto_class
+        self._queue_ttl = queue_ttl * 1000
 
     def execute(self, msg_obj: BaseModel):
         """
@@ -59,7 +60,12 @@ class AsyncWorkerBase:
                 channel = connection.channel()
 
                 channel.queue_declare(
-                    queue=self._async_queue_name, durable=True)
+                    queue=self._async_queue_name,
+                    durable=True,
+                    arguments={
+                        "x-message-ttl": self._queue_ttl
+                    }
+                )
 
                 channel.basic_qos(prefetch_count=1)
                 channel.basic_consume(queue=self._async_queue_name,

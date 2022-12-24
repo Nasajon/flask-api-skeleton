@@ -9,9 +9,10 @@ from nsj_gcf_utils.json_util import json_dumps
 
 class AsynServiceBase:
 
-    def __init__(self, async_queue_name: str):
+    def __init__(self, async_queue_name: str, queue_ttl=3600):
         super().__init__()
         self._async_queue_name = async_queue_name
+        self._queue_ttl = queue_ttl * 1000
 
     def handle_message_befor_enqueue(self, msg: BaseModel) -> BaseModel:
         return msg
@@ -28,7 +29,13 @@ class AsynServiceBase:
         ) as connection:
             channel = connection.channel()
 
-            channel.queue_declare(queue=self._async_queue_name, durable=True)
+            channel.queue_declare(
+                queue=self._async_queue_name,
+                durable=True,
+                arguments={
+                    "x-message-ttl": self._queue_ttl
+                }
+            )
 
             channel.basic_publish(
                 exchange='',

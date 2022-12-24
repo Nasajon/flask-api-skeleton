@@ -29,6 +29,7 @@ LOG_FILE_PATH = os.getenv(
 RABBITMQ_HOST = os.environ['RABBITMQ_HOST']
 RABBITMQ_VHOST = os.environ['RABBITMQ_VHOST']
 ASYNC_QUEUE_NAME = os.environ['ASYNC_QUEUE_NAME']
+ASYNC_QUEUE_TTL = os.environ['ASYNC_QUEUE_TTL']
 
 # Configurando o logger
 logger = logging.getLogger(APP_NAME)
