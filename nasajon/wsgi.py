@@ -1,6 +1,7 @@
 # Importando arquivos de configuração
 from nasajon.settings import application
 import nasajon.db_pool_config
+import nasajon.healthcheck_config
 
 # TODO Importar todos os controllers (se não, as rotas não existirão)
 import nasajon.controller.cliente_controller

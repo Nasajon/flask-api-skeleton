@@ -23,7 +23,7 @@ def post_async_order():
             data = AsyncOrderDTO(**data)
 
             service = factory.async_order_service()
-            service.enqueue_order(data)
+            service.enqueue(data)
 
             return ({}, 204, {**DEFAULT_RESP_HEADERS})
         except ValidationError as e:

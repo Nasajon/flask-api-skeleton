@@ -2,7 +2,7 @@ import pika
 
 from pydantic import BaseModel
 
-from nasajon.settings import logger, RABBITMQ_HOST, RABBITMQ_VHOST
+from nasajon.settings import logger, RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_VHOST
 
 from nsj_gcf_utils.json_util import json_dumps
 
@@ -24,8 +24,8 @@ class AsynServiceBase:
         with pika.BlockingConnection(
             pika.ConnectionParameters(
                 host=RABBITMQ_HOST,
-                virtual_host=RABBITMQ_VHOST
-            )
+                virtual_host=RABBITMQ_VHOST,
+                port=RABBITMQ_PORT)
         ) as connection:
             channel = connection.channel()
 

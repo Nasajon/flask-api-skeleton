@@ -4,7 +4,7 @@ import sys
 
 from pydantic import BaseModel, ValidationError
 
-from nasajon.settings import logger, RABBITMQ_HOST, RABBITMQ_VHOST
+from nasajon.settings import logger, RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_VHOST
 
 from nsj_gcf_utils.json_util import json_loads
 
@@ -54,7 +54,8 @@ class AsyncWorkerBase:
             with pika.BlockingConnection(
                 pika.ConnectionParameters(
                     host=RABBITMQ_HOST,
-                    virtual_host=RABBITMQ_VHOST
+                    virtual_host=RABBITMQ_VHOST,
+                    port=RABBITMQ_PORT
                 )
             ) as connection:
                 channel = connection.channel()

@@ -27,9 +27,14 @@ LOG_FILE_PATH = os.getenv(
     'LOG_FILE_PATH', f"/var/log/nasajon/exec.log")
 
 RABBITMQ_HOST = os.environ['RABBITMQ_HOST']
+RABBITMQ_PORT = int(os.getenv('RABBITMQ_PORT', 5672))
+RABBITMQ_HTTP_PORT = int(os.getenv('RABBITMQ_HTTP_PORT', 15672))
+RABBITMQ_USER = os.getenv('RABBITMQ_USER', 'guest')
+RABBITMQ_PASS = os.getenv('RABBITMQ_PASS', 'guest')
 RABBITMQ_VHOST = os.environ['RABBITMQ_VHOST']
+
 ASYNC_QUEUE_NAME = os.environ['ASYNC_QUEUE_NAME']
-ASYNC_QUEUE_TTL = os.environ['ASYNC_QUEUE_TTL']
+ASYNC_QUEUE_TTL = int(os.environ['ASYNC_QUEUE_TTL'])
 
 # Configurando o logger
 logger = logging.getLogger(APP_NAME)
