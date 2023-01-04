@@ -32,6 +32,10 @@ class AsyncWorkerBase:
         try:
             try:
                 logger.info("Nova mensagem recebida.")
+                tries = self._get_message_try_number(properties)
+                logger.info(
+                    f"Número de vezes da mensagem na fila de processamento: {tries+1}.")
+
                 logger.debug(f"Dados da mensagem: {body}")
 
                 data_str = body.decode('utf-8')
@@ -57,16 +61,28 @@ class AsyncWorkerBase:
                 f"{e}\nDados da mensagem descartada: {data_str}")
             ch.basic_ack(delivery_tag=method.delivery_tag)
 
+    def _get_message_try_number(self, properties):
+        """
+        Recupera o número de vezes que a mensagem entrou na fila de processamento
+        """
+
+        if properties.headers is None:
+            return 0
+
+        x_death = properties.headers.setdefault('x-death', [{}])
+        retries = x_death[0].get('count', 1)
+
+        return retries
+
     def _check_message_ttl(self, properties):
         """
         Verifica se a mensagem excedeu o TTL da fila (para descarte final da mesma)
         """
 
-        if properties.headers is None:
+        retries = self._get_message_try_number(properties)
+        if retries <= 0:
             return
 
-        x_death = properties.headers.setdefault('x-death', [{}])
-        retries = x_death[0].get('count', 1)
         time_in_queue = (retries - 1) * self._queue_delay
 
         if time_in_queue >= self._queue_ttl:
