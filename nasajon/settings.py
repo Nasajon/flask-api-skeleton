@@ -34,7 +34,8 @@ RABBITMQ_PASS = os.getenv('RABBITMQ_PASS', 'guest')
 RABBITMQ_VHOST = os.environ['RABBITMQ_VHOST']
 
 ASYNC_QUEUE_NAME = os.environ['ASYNC_QUEUE_NAME']
-ASYNC_QUEUE_TTL = int(os.environ['ASYNC_QUEUE_TTL'])
+ASYNC_QUEUE_TTL = int(os.getenv('ASYNC_QUEUE_TTL', 86400))
+ASYNC_QUEUE_DELAY = int(os.getenv('ASYNC_QUEUE_DELAY', 900))
 
 # Configurando o logger
 logger = logging.getLogger(APP_NAME)

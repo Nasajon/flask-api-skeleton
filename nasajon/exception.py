@@ -1,0 +1,2 @@
+class TTLMessageException(Exception):
+    pass
