@@ -5,6 +5,13 @@ GET http://localhost:5000/app/1234/clientes HTTP/1.1
 Authorization: Bearer ***********
 Accept: application/json
 
+######################
+# Get Clientes ILIKE #
+######################
+GET http://localhost:5000/app/1234/clientes?search=Fulano HTTP/1.1
+Authorization: Bearer ***********
+Accept: application/json
+
 #####################
 # Get Cliente by ID #
 #####################

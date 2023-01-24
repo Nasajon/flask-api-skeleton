@@ -150,3 +150,28 @@ class ClientesDAO:
         cliente.created_at = returning[0]['created_at']
 
         return cliente
+
+    def search(self, search: str) -> Cliente:
+        """
+        Recupera clientes com ilike no ID.
+        """
+
+        sql = """
+        select
+            id, codigo, nome, documento, created_at
+        from
+            teste.cliente
+        where
+            id::text ilike :search
+            or codigo::text ilike :search
+            or nome ilike :search
+            or documento ilike :search
+            or created_at::text ilike :search
+        """
+
+        resp = self._db.execute_query_to_model(sql, Cliente, search=f'%{search}%')
+
+        if len(resp) <= 0:
+            raise NotFoundException(f'Cliente com o valor {search} não encontrado.')
+
+        return resp

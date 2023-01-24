@@ -43,3 +43,12 @@ class ClientesService:
             self._dao.insert(model),
             ClientePostResponseDTO
         )
+    
+    def search(
+        self,
+        value: str
+    ):
+        return convert_to(
+            self._dao.search(value),
+            ClienteGetDTO
+        )
