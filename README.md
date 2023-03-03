@@ -87,6 +87,12 @@ O projeto esqueleto vem definido já depente das seguintes variáveis de ambient
 | ------------------- | ----------- | --------------------------------------------------------- |
 | APIKEY_VALIDATE_URL | Não         | URL (do Diretório) para validação de uma APIKey recebida. |
 
+#### Variáveis Grafana
+
+| Variável            | Obrigatória | Descrição                                                 |
+| ------------------- | ----------- | --------------------------------------------------------- |
+| GRAFANA_URL         | Não         | URL para o endpoint para envio dos logs ao Grafana Loki.  |
+| AMBIENTE            | Sim         | Nome do ambiente. Usado para distinção dos logs.          |
 
 ### Estrutura de diretórios
 
@@ -218,3 +224,10 @@ Obs. 2: A autenticação via API-Key suporta receber a chave tanto pelo header `
 Para debuggar pelo VSCode, abra um arquivo python e aperte F5, selecione a opção `Remote Attach`, coloque localhost na primeira caixa de texto e 5678 na segunda caixa de texto.Assim o VSCode irá se conectar à aplicação para poder debugar normalmente.
 
 Obs: As vezes é necessário fazer requisições para a aplicação para o VSCode conseguir se conectar antes de poder debugar. Então é bom fazer a requisição para uma rota sem problemas até o VSCode se conectar (pode ser identificado pois o ícone de parar muda para o ícone de desconectar).
+
+### Logs Grafana
+
+Foi utilizado a biblioteca `python-logging-loki`, que permite que os logs sejam enviados diretamente para o Grafana Loki, usando o pacote de log do Python. Para configurar o envio de logs, é necessário definir a URL do servidor do Grafana Loki (variável `GRAFANA_URL`) e o ambiente em que a aplicação está sendo executada (variável `AMBIENTE`)
+
+É possível adicionar labels adicionais aos logs, fornecendo informações adicionais sobre a origem ou o contexto do log. Para fazer isso, basta incluir o argumento 'extra' na chamada do log, passando um dicionário de tags. No exemplo a seguir, a tag 'service' é adicionada com o valor 'my-service', indicando que o log foi gerado por um serviço chamado 'my-service'.
+ex: logger.debug("Something on purpose", extra={"tags": {"service": "my-service"}},)
