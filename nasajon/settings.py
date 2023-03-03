@@ -1,6 +1,7 @@
 import ptvsd
 import os
 import logging
+import logging_loki
 import sys
 import time
 
@@ -22,6 +23,8 @@ DEFAULT_PAGE_SIZE = int(os.getenv('DEFAULT_PAGE_SIZE', 20))
 DIRETORIO_URL = os.environ['DIRETORIO_URL']
 PROFILE_URL = os.environ['PROFILE_URL']
 API_KEY = os.environ['API_KEY']
+GRAFANA_URL = os.environ['GRAFANA_URL']
+AMBIENTE = os.environ['AMBIENTE']
 
 LOG_FILE_PATH = os.getenv(
     'LOG_FILE_PATH', f"/var/log/nasajon/exec.log")
@@ -47,6 +50,7 @@ else:
 console_handler = logging.StreamHandler(sys.stdout)
 file_handler = logging.FileHandler(
     filename=LOG_FILE_PATH)
+loki_handler = logging_loki.LokiHandler(url=GRAFANA_URL, tags={AMBIENTE.upper() + "_flask_api_skeleton": AMBIENTE.lower() + "_log"}, version="1",)
 
 console_format = logging.Formatter(
     '%(name)s - %(levelname)s - %(message)s')
@@ -58,6 +62,7 @@ file_handler.setFormatter(file_format)
 
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
+logger.addHandler(loki_handler)
 
 
 def log_time(msg: str):
