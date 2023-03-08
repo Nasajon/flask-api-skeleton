@@ -26,9 +26,6 @@ API_KEY = os.environ['API_KEY']
 GRAFANA_URL = os.environ['GRAFANA_URL']
 AMBIENTE = os.environ['AMBIENTE']
 
-LOG_FILE_PATH = os.getenv(
-    'LOG_FILE_PATH', f"/var/log/nasajon/exec.log")
-
 RABBITMQ_HOST = os.environ['RABBITMQ_HOST']
 RABBITMQ_PORT = int(os.getenv('RABBITMQ_PORT', 5672))
 RABBITMQ_HTTP_PORT = int(os.getenv('RABBITMQ_HTTP_PORT', 15672))
@@ -48,20 +45,15 @@ else:
     logger.setLevel(logging.INFO)
 
 console_handler = logging.StreamHandler(sys.stdout)
-file_handler = logging.FileHandler(
-    filename=LOG_FILE_PATH)
-loki_handler = logging_loki.LokiHandler(url=GRAFANA_URL, tags={AMBIENTE.upper() + "_flask_api_skeleton": AMBIENTE.lower() + "_log"}, version="1",)
+loki_handler = logging_loki.LokiHandler(url=GRAFANA_URL, tags={AMBIENTE.upper(
+) + "_flask_api_skeleton": AMBIENTE.lower() + "_log"}, version="1",)
 
 console_format = logging.Formatter(
-    '%(name)s - %(levelname)s - %(message)s')
-file_format = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 console_handler.setFormatter(console_format)
-file_handler.setFormatter(file_format)
 
 logger.addHandler(console_handler)
-logger.addHandler(file_handler)
 logger.addHandler(loki_handler)
 
 
