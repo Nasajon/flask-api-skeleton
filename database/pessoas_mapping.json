@@ -1,0 +1,56 @@
+{
+  "settings": {
+    "analysis": {
+      "char_filter": {},
+      "tokenizer": {},
+      "filter": {
+        "stopwords_ptbr":{
+          "type":"stop",
+          "stopwords": "_portuguese_"
+        },
+        "stemmer_ptbr": {
+            "type":       "stemmer",
+            "language":   "brazilian"
+        },
+        "sinonimos": {
+          "type": "synonym",
+          "lenient": true,
+          "synonyms_path": "analysis/sinonimos.txt"
+        },
+        "n_gramas":{
+          "type": "edge_ngram",
+          "min_gram": 3,
+          "max_gram": 10
+        }
+      },
+      "analyzer": {
+        "nsj_default" : {
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "stopwords_ptbr",
+            "stemmer_ptbr",
+            "sinonimos",
+            "n_gramas"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": {
+        "type": "keyword"
+      },
+      "resumo": {
+        "type": "text",
+        "analyzer": "nsj_default",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  }
+}

@@ -11,7 +11,10 @@ HealthCheckConfig(
 ).config(True, True)
 
 # TODO Importar todos os controllers (se não, as rotas não existirão)
-import nasajon.controller.cliente_controller
+import nasajon.controller.clientes_controller
+import nasajon.controller.pessoas_controller
+import nasajon.controller.telefones_controller
+import nasajon.controller.contatos_controller
 import nasajon.controller.ping_controller
 import nasajon.controller.token_info_controller
 import nasajon.controller.async_order_controller

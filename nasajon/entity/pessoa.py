@@ -1,7 +1,8 @@
 import datetime
 import uuid
 
-class Cliente:
+
+class Pessoa:
 
     id: uuid.UUID
     codigo: str

@@ -12,8 +12,20 @@ Por fim, vale destacar que o próprio skeleton já foi desenvolvido como um API 
 * `GET /1234/clientes` - Listagem páginada de clientes
 * `GET /1234/clientes/{id}` - Retrieve de um único cliente
 * `POST /1234/clientes` - Gravação de um novo cliente
+* `GET /1234/pessoas` - Listagem páginada de pessoas
+* `GET /1234/pessoas/{id}` - Retrieve de uma única pessoa
+* `POST /1234/pessoas` - Gravação de uma nova pessoa
+* `PUT /1234/pessoas/{id}` - Atualização de uma pessoa
+* `GET /1234/indice/pessoas` - Listagem de pessoas através de um índice
+* `GET /1234/telefones` - Listagem páginada de telefones
+* `GET /1234/telefones/{id}` - Retrieve de um único telefone
+* `POST /1234/telefones` - Gravação de um novo telefone
+* `GET /1234/contatos` - Listagem páginada de contatos
+* `GET /1234/contatos/{id}` - Retrieve de um contato
+* `POST /1234/contatos` - Gravação de um novo contato
+* `PUT /1234/contatos/{id}` - Atualização de um contato
 * `GET /ping` - Retorna um JSON contendo uma mensagem "Pong!".
-* `GET /token-info` - Retorna um JSON contendo as informações básicas contidas no Acess Tokeb recebido.
+* `GET /token-info` - Retorna um JSON contendo as informações básicas contidas no Acess Token recebido.
 
 _(*) Cabe fazer a ressalva de que o Flask é veículado na web como framework web, uma vez que implemente o necessário para efetiva comunicação HTTP, além de contar com diversas bibliotecas adicionais, capazes de prover funcionalidades adicionais comuns aos frameworks web. Mesmo assim, diferente de outros frameworks, o Flask não impõe padrões rígidos ao programador, e é distribuído de modo extremamente minimalista (carecendo da instalação de muitos complementos). Logo, pode-se também dizer, com certa razoabilidade, que o Flask se apresenta mais como uma biblioteca web, do que como um framework de fato (a não ser pelo fato de implementar o ciclo básico da comunicação HTTP, deixando para o programador tarefas mais alto nível). E, essa resslava é importante para justificar a liberdade de organização do repositório (conforme apresentado a seguir)._
 ## Ambiente de Desenvolvimento
@@ -32,7 +44,7 @@ _(*) Cabe fazer a ressalva de que o Flask é veículado na web como framework we
 > ./.venv/source/bin/activate
 6. Instale as dependências do projeto.
 > pip install -r requirements.txt
-7. Inicie o BD pelo docker 
+7. Inicie o BD pelo docker
 > docker-compose up -d postgres
 8. Inicie o servidor de desenvolvimento do flask:
 > docker-compose up -d app
@@ -85,7 +97,7 @@ O projeto esqueleto vem definido já depente das seguintes variáveis de ambient
 
 | Variável            | Obrigatória | Descrição                                                 |
 | ------------------- | ----------- | --------------------------------------------------------- |
-| APIKEY_VALIDATE_URL | Não         | URL (do Diretório) para validação de uma APIKey recebida. |
+| APIKEY_VALIDATE_URL | Sim         | URL (do Diretório) para validação de uma APIKey recebida. |
 
 #### Variáveis Grafana
 
@@ -93,6 +105,16 @@ O projeto esqueleto vem definido já depente das seguintes variáveis de ambient
 | ------------------- | ----------- | --------------------------------------------------------- |
 | GRAFANA_URL         | Não         | URL para o endpoint para envio dos logs ao Grafana Loki.  |
 | AMBIENTE            | Sim         | Nome do ambiente. Usado para distinção dos logs.          |
+#### Variáveis para exemplo da sincronia de dados
+
+Estas variáveis são utilizadas para o [exemplo de sincronia de dados](docs/comunicao-assincrona.md) entre serviços.
+
+| Variável            | Obrigatória | Descrição                                                 |
+| ------------------- | ----------- | --------------------------------------------------------- |
+| INDEX_DB_URL | Sim         | URL do serviço de indexação, no exemplo, foi usado o ElasticSearch. |
+| API_PESSOAS_URL | Sim         | URL da api de pessoas. |
+| API_CONTATOS_URL | Sim         | URL da api de contatos. |
+| INDEX_PESSOAS_LIST | Sim         | Nome do índice de pessoas. |
 
 ### Estrutura de diretórios
 
@@ -110,7 +132,12 @@ O projeto foi organizado com a seguinte sugestão de padrão (apenas os artefato
 |- wsgi.py (PONTO DE ENTRADA principal da aplicação; cada novo controller deve ser importado neste arquivo, para que suas rotas de fato existam na aplicaçao em execução)
 |- oauht_config.py (implementação da autorização; é deste arquivo que se deve importar o decorator "require_oauth" a ser adicionado em cada método de definição das rotas da aplicação)
 |- settings.py (configuração geral da aplicação, lendo variáveis de ambiente, instanciando a "aplicação flask", instanciando o logger, etc)
-- database (diretório para fins didáticos, contendo um esqueleto de BD utilizado pela imagem docker "postgres")
+- database (diretório para fins didáticos,
+contendo um esqueleto de BD utilizado pela imagem docker "postgres")
+- doc (documentações)
+- esconfig (pasta que contém arquivos de configuração do elasticsearch)
+- esdata (pasta de dados do elasticsearch)
+- kibanadata (pasta de dados do kibana)
 - rest (diretório com exemplos de chamadas aos endpoints implementados)
 - .env.dist (arquivo base para definição das variáveis de ambiente)
 - docker-compose.yml (configuração das imagens docker utilizadas no projeto)
@@ -121,7 +148,7 @@ O projeto foi organizado com a seguinte sugestão de padrão (apenas os artefato
 
 ### Banco de dados
 
-A aplicação de exemplo disponibilizada, conta com apenas uma tabela de banco, com a seguinte estrutura:
+A aplicação de exemplo disponibilizada, conta com algumas tabelas de banco, com a seguinte estrutura:
 
 #### Tabela teste.cliente
 
@@ -133,6 +160,51 @@ A aplicação de exemplo disponibilizada, conta com apenas uma tabela de banco, 
 | documento  | varchar(14) not null  | Não definido       | Documento de identificação d cliente                                                                 |
 | created_at | timestamp not null    | now()              | Data e hora de criação do registro                                                                   |
 
+#### Tabela teste.telefones
+
+Telefones associados a um cliente.
+
+
+| Coluna      | Tipo                   | Valor Default      | Descrição                                                                                           |
+| ----------- | ---------------------- | ------------------ | --------------------------------------------------------------------------------------------------- |
+| id          | uuid not null          | uuid_generate_v4() | Chave primária da entidade.                                                                         |
+| cliente     | uuid not null          | -                  | Chave estrangeira referenciando a tabela `cliente`, indicando a qual cliente este telefone pertence.|
+| descricao   | varchar(150)           | -                  | Descrição opcional do telefone.                                                                     |
+| principal   | boolean                | -                  | Indica se o telefone é o principal para o cliente.                                                |
+| tipo        | text                   | -                  | Tipo do telefone, pode ser "fixo", "celular", "fax" ou "voip".                                    |
+| ddd         | varchar(2)             | -                  | Código de área do telefone.                                                                         |
+| numero      | varchar(20) not null   | -                  | Número principal do telefone.                                                                       |
+| ramal       | varchar(12)             | -                  | Ramal associado ao número de telefone.                                                             |
+| created_at  | timestamp not null     | now()              | Data e hora de criação do registro.                                                                 |
+
+Essa tabela `telefone` permite armazenar informações sobre diferentes números de telefone associados a clientes, com detalhes sobre o tipo de telefone, número, ramal e outros atributos relevantes. A chave estrangeira `cliente` relaciona cada telefone ao cliente correspondente na tabela `cliente`.
+
+#### Tabela faturamento.pessoas
+
+Um espelho da tabela [teste.cliente](#tabela-testecliente) usado no exemplo da [integração entre serviços](docs/comunicao-assincrona.md).
+
+#### Tabela faturamento.contatos
+
+Um espelho da tabela [teste.telefones](#tabela-testecliente) usado no exemplo da [integração entre serviços](docs/comunicao-assincrona.md).
+
+#### Tabelas de configuração da integração entre serviços
+
+As próximas tabelas estão associadas aos recursos de [Comunicação assíncrona](#comunicação-assíncrona-entre-serviços) e estão descritos na documentação da [ns-queue-lib](https://github.com/Nasajon/nsj-queue-lib/tree/master#fila-em-uma-%C3%BAnica-tabela).
+
+##### Fila (public.fila_cliente)
+
+Armazena as tarefas de comunicação de clientes com seus dados detalhes de comunicação e informações de controle. Deverá existir uma tabela para cada documento que se deseje publicar. Considerando que o documento tabém pode ter dados aninhados, no nosso exemplo Clientes e Telefones.
+
+[Detalhamento dos campos ](https://github.com/Nasajon/nsj-queue-lib/tree/master#fila-em-uma-%C3%BAnica-tabela)
+
+##### Notificação (public.fila_cliente_subscriber)
+
+Usado para registrar assinantes das mensagens na fila, deacorod com o padrão pub sub.
+
+No exemplo existem dois assinantes para as mensagens que são processadas no [`WorkerSincroniaClientes`](../nasajon/worker/worker_sincronia_clientes.py), através dos métodos `sinc_cliente` e `sinc_indice`.
+
+[Detalhamento dos campos ](https://github.com/Nasajon/nsj-queue-lib/tree/master#pubsub)
+
 ### Imagens docker
 
 Imagens usados no `docker-compose.yml` para rodar o projeto.
@@ -141,9 +213,13 @@ Imagens usados no `docker-compose.yml` para rodar o projeto.
 
 * __postgres:11.5__: Imagem para instanciação do BD de exemplo da aplicação.
 
+* __docker.elastic.co/elasticsearch/elasticsearch:8.8.2__: Imagem do Elasticsearch, um mecanismo de busca e análise de dados distribuído. Usado como um [índice de dados](docs/elasticsearch.md).
+
+* __docker.elastic.co/kibana/kibana:8.8.2__: Aplicação fronmt-end que fornecefuncionalidades de busca e visualização de dados indexados no Elasticsearch.
+
 ## Padrões de Projeto Adotados
 
-A aplicação desenvolvida como exmplo, conta com os seguintes recursos (que podem ser usados como design patters, ou apenas como exemplo de possível implementação):
+A aplicação desenvolvida como exemplo, conta com os seguintes recursos (que podem ser usados como design patters, ou apenas como exemplo de possível implementação):
 
 ### Entrada e saída de dados
 
@@ -218,6 +294,18 @@ Para definir que uma rota requer esse tipo de autenticação, basta preencher a 
 Obs. 1: Ainda não suportamos o uso concomitante de ambos os tipos de autenticação numa mesma rota.
 
 Obs. 2: A autenticação via API-Key suporta receber a chave tanto pelo header `apikey`, quanto pelo `X-API-Key` (ver o arquivo `rest/ping.rest`).
+
+### Comunicação assíncrona entre serviços
+
+Este projeto conta com um exemplo que permite a troca de informações entre aplicações de forma assíncrona, para isso, foi usada a biblioteca [nsj-queue-lib](https://github.com/Nasajon/nsj-queue-lib) para prover a comunicação assíncrona através de mensageria que segue os princípios do padrão [Caixa de saída transacionada](https://www.kamilgrzybek.com/blog/posts/the-outbox-pattern).
+
+Para simplificar o exemplo, tanto o serviço de origem, quanto o de destino dos dados estão implementados no mesmo serviço, contudo, a comunicação ocorre de forma assíncrona, através de um worker que entrega as mensagens para as apis/serviços de destino. Um dos serviços de destino é um índice no elasticsearch, que resume os dados recebidos e possibilita consultas [Full Text Search](https://en.wikipedia.org/wiki/Full-text_search) e abre precendentes para uso do padrão [CQRS](https://learn.microsoft.com/pt-br/azure/architecture/patterns/cqrs) que visa separar os dados entre modelos de leitura (Read Model) e escrita (Write Model).
+
+Os detalhes específicos pode ser conferidos abaixo:
+
+
+* [Detalhes do exemplo da Comunicação Assíncrona](docs/comunicao-assincrona.md)
+* [Índices no ElasticSearch](docs/elasticsearch.md)
 
 ### Debug no VSCode
 
