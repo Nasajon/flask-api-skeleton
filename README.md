@@ -52,6 +52,14 @@ _(*) Cabe fazer a ressalva de que o Flask é veículado na web como framework we
 > docker-compose stop app
 > docker-compose up -d app
 
+#### Comunicação entre serviços
+
+10. Caso se tenha por objetivo testar a comunicação entre serviços, é necessário subir os containers do **elasticsearch**, **kibana** e do **worker da sincronia de clientes**:
+
+> docker-compose start elasticsearch
+> docker-compose start kibana
+> docker-compose start worker-sincronia-clientes
+
 ### Testes manuais
 
 Para testar a disponibilidade dos serviços (após iniciar o configurar e iniciar o ambiente), foram preparadas alguns exemplos de chamada aos enpoints, por meio dos arquivos `.rest`, contidos no diretório `rest` deste repositório.
@@ -191,31 +199,33 @@ Um espelho da tabela [teste.telefones](#tabela-testecliente) usado no exemplo da
 
 As próximas tabelas estão associadas aos recursos de [Comunicação assíncrona](#comunicação-assíncrona-entre-serviços) e estão descritos na documentação da [ns-queue-lib](https://github.com/Nasajon/nsj-queue-lib/tree/master#fila-em-uma-%C3%BAnica-tabela).
 
-##### Fila (public.fila_cliente)
+##### Fila ([public.fila_cliente](./database/dump/create.sql#L76))
 
 Armazena as tarefas de comunicação de clientes com seus dados detalhes de comunicação e informações de controle. Deverá existir uma tabela para cada documento que se deseje publicar. Considerando que o documento tabém pode ter dados aninhados, no nosso exemplo Clientes e Telefones.
 
 [Detalhamento dos campos ](https://github.com/Nasajon/nsj-queue-lib/tree/master#fila-em-uma-%C3%BAnica-tabela)
 
-##### Notificação (public.fila_cliente_subscriber)
+##### Notificação ([public.fila_cliente_subscriber](./database/dump/create.sql#L130))
 
-Usado para registrar assinantes das mensagens na fila, deacorod com o padrão pub sub.
+Usado para registrar assinantes das mensagens na fila, de acordo com o padrão pub sub.
 
-No exemplo existem dois assinantes para as mensagens que são processadas no [`WorkerSincroniaClientes`](../nasajon/worker/worker_sincronia_clientes.py), através dos métodos `sinc_cliente` e `sinc_indice`.
+No exemplo existem dois assinantes para as mensagens que são processadas no [`WorkerSincroniaClientes`](nasajon/worker/worker_sincronia_clientes.py), através dos métodos `sinc_cliente` e `sinc_indice`.
 
 [Detalhamento dos campos ](https://github.com/Nasajon/nsj-queue-lib/tree/master#pubsub)
+
+Além disso são necessárias a trigger [trigger_insert_fila_cliente](./database/dump/create.sql#L123) e a função [public.notify_fila_cliente_insert()](./database/dump/create.sql#L113) que fazem a notificação de novos eventos para os [assinantes](./database/dump/create.sql#L144).
 
 ### Imagens docker
 
 Imagens usados no `docker-compose.yml` para rodar o projeto.
 
-* __arquiteturansj/flask:2.0__: Imagem para inicializar o flask com wsgi e nginx.
+* __arquiteturansj/flask:2.0__: Imagem para inicializar o flask com wsgi e nginx. É usada tanto para subir o **container das apis** quanto para executar os **workers de sincronia** e de **filas**.
 
 * __postgres:11.5__: Imagem para instanciação do BD de exemplo da aplicação.
 
-* __docker.elastic.co/elasticsearch/elasticsearch:8.8.2__: Imagem do Elasticsearch, um mecanismo de busca e análise de dados distribuído. Usado como um [índice de dados](docs/elasticsearch.md).
+* __docker.elastic.co/elasticsearch/elasticsearch:8.8.2__: Imagem do Elasticsearch, um mecanismo de busca e análise de dados distribuído. Usado como um [índice de dados](./docs/elasticsearch.md).
 
-* __docker.elastic.co/kibana/kibana:8.8.2__: Aplicação fronmt-end que fornecefuncionalidades de busca e visualização de dados indexados no Elasticsearch.
+* __docker.elastic.co/kibana/kibana:8.8.2__: Aplicação front-end que fornece funcionalidades de busca e visualização de dados indexados no Elasticsearch.
 
 ## Padrões de Projeto Adotados
 
@@ -306,6 +316,15 @@ Os detalhes específicos pode ser conferidos abaixo:
 
 * [Detalhes do exemplo da Comunicação Assíncrona](docs/comunicao-assincrona.md)
 * [Índices no ElasticSearch](docs/elasticsearch.md)
+
+#### Um passo a passo resumido para a adicionar uma sincronia é:
+
+1. [Crie as tabelas para gerenciamento dos eventos](#tabelas-de-configuração-da-integração-entre-serviços), uma indicação é que estas tabelas correspondam ao elemento raiz de uma agregação, por exemplo, para pedidos, itens e faturas, use pedidos;
+2. [Adicione a captura dos eventos de forma transacionada;](./nasajon/service/clientes_service.py#L56)
+3. [Crie um ou mais assinantes para o evento;](./database/dump/create.sql#L144)
+4. [Crie código para processar os eventos;](./nasajon/worker/worker_sincronia_clientes.py)
+
+5. [Suba e teste! ;)](#comunicação-entre-serviços)
 
 ### Debug no VSCode
 
