@@ -46,3 +46,31 @@ services:
         env_file:
             - .env
         command: sh -c "python3 -m pip install -r /var/www/html/requirements.txt --no-cache-dir && python3 -m nasajon.worker.async_order_worker"
+
+    # Bancos alternativos (MySQL e SingleStore) - Caso necessário (mas, a implementação padrão nãos os utiliza)
+    mysql:
+        image: mysql:8.0.30
+        ports:
+            - "3306:3306"
+        restart: always
+        volumes:
+            - $PWD/database/dump:/docker-entrypoint-initdb.d/
+            - $PWD/database/data:/var/lib/mysql
+        environment:
+            - "MYSQL_DATABASE=projeto"
+            - "MYSQL_USER=projeto"
+            - "MYSQL_PASSWORD=mysecretpassword"
+            - "MYSQL_ROOT_PASSWORD=rootsecretpassword"
+
+    memsql:
+        build: ./database/memsql
+        ports:
+            - 3306:3306
+            - 8080:8080
+        volumes:
+            - ./database/dump:/data
+        #   - memsql-data:/var/lib/memsql
+        environment:
+            - ROOT_PASSWORD=nasajon
+            - LICENSE_KEY=BDI5N2M0N2M1NWNkZTQzNmFiMTU1ZTEzMjNmY2JiMDJmAAAAAAAAAAAEAAAAAAAAAAwwNQIYIN/Bhr8jwJApNG6mq1aHI3Ep0ugzTkaRAhkA4ImSi5m0cfJmYn87YfNbc8Hp8LhlAwJbAA==
+
