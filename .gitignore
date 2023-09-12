@@ -1,3 +1,5 @@
+/database/data
+.venv/
 __pycache__
 logs/
 *.pyc
