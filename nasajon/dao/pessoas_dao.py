@@ -1,81 +1,50 @@
 import uuid
 
 from nasajon.settings import log_time
-from nasajon.entity.cliente import Cliente
+from nasajon.entity.pessoa import Pessoa
 
 from nsj_gcf_utils.db_adapter2 import DBAdapter2
 from nsj_gcf_utils.exception import NotFoundException
 from typing import List
 
-from nsj_gcf_utils.json_util import convert_to_dumps
 
-
-class ClientesDAO:
+class PessoasDAO:
     _db: DBAdapter2
 
     def __init__(self, db: DBAdapter2 = None):
         self._db = db
 
-    def begin(self):
+    def get(self, id: uuid.UUID) -> Pessoa:
         """
-        Inicia uma transação no banco de dados
-        """
-        self._db.begin()
-
-    def commit(self):
-        """
-        Faz commit na transação corrente no banco de dados (se houver uma).
-
-        Não dá erro, se não houver uma transação.
-        """
-        self._db.commit()
-
-    def rollback(self):
-        """
-        Faz rollback da transação corrente no banco de dados (se houver uma).
-
-        Não dá erro, se não houver uma transação.
-        """
-        self._db.rollback()
-
-    def in_transaction(self) -> bool:
-        """
-        Verifica se há uma transação em aberto no banco de dados
-        (na verdade, verifica se há no DBAdapter, e não no BD em si).
-        """
-        return self._db.in_transaction()
-
-    def get(self, id: uuid.UUID) -> Cliente:
-        """
-        Recupera um cliente por meio de seu ID.
+        Recupera uma pessoa por meio de seu ID.
         """
 
         sql = """
         select
             id, codigo, nome, documento, created_at
         from
-            teste.cliente
+            faturamento.pessoa
         where
             id = :id
         """
 
-        resp = self._db.execute_query_to_model(sql, Cliente, id=id)
+        resp = self._db.execute_query_to_model(sql, Pessoa, id=id)
 
         if len(resp) <= 0:
-            raise NotFoundException(f'Cliente com id {id} não encontrado.')
+            raise NotFoundException(f'Pessoa com id {id} não encontrado.')
 
         return resp[0]
 
-    # @log_time('Listando clientes do banco de dados.')
+    # @log_time('Listando pessoas do banco de dados.')
     # TODO Corrigir implementação do decorator
     def list(
         self,
         after: uuid.UUID,
         before: uuid.UUID,
         limit: int
-    ) -> List[Cliente]:
+    ) -> List[Pessoa]:
         """
-        Recupera uma lista paginada de clientes.
+        Recupera uma lista paginada de pessoas.
         """
 
         # Recuperando dados para paginacao
@@ -129,7 +98,7 @@ class ClientesDAO:
         select
             id, codigo, nome, documento, created_at
         from
-            teste.cliente
+            faturamento.pessoa
         {where}
         {order_by}
         limit {limit}
@@ -137,7 +106,7 @@ class ClientesDAO:
 
         resp = self._db.execute_query_to_model(
             sql,
-            Cliente,
+            Pessoa,
             codigo_after=codigo_after,
             nome_after=nome_after,
             codigo_before=codigo_before,
@@ -151,35 +120,61 @@ class ClientesDAO:
 
         return resp
 
-    def insert(self, cliente: Cliente):
+    def insert(self, pessoa: Pessoa):
         """
-        Insere um cliente no banco de dados
+        Insere uma pessoa no banco de dados
         """
 
         sql = """
-        insert into teste.cliente
+        insert into faturamento.pessoa
         (id, nome, documento)
         values
         (:id, :nome, :documento)
         returning codigo, created_at
         """
 
-        values_map = convert_to_dumps(cliente)
-
-        new_id = (cliente.id if cliente.id is not None else uuid.uuid4())
+        new_id = (pessoa.id if pessoa.id is not None else uuid.uuid4())
         rowcount, returning = self._db.execute(
             sql,
             id=new_id,
-            nome=cliente.nome,
-            documento=cliente.documento,
+            nome=pessoa.nome,
+            documento=pessoa.documento,
         )
 
         if rowcount <= 0:
             raise Exception(
-                'Erro inserindo Cliente no banco de dados')
+                'Erro inserindo Pessoa no banco de dados')
 
-        cliente.id = new_id
-        cliente.codigo = returning[0]['codigo']
-        cliente.created_at = returning[0]['created_at']
+        pessoa.id = new_id
+        pessoa.codigo = returning[0]['codigo']
+        pessoa.created_at = returning[0]['created_at']
 
-        return cliente
+        return pessoa
+
+    def update(self, pessoa: Pessoa):
+        """
+        Insere uma pessoa no banco de dados
+        """
+
+        sql = """
+        UPDATE
+            faturamento.pessoa
+        SET
+            nome=:nome,
+            documento=:documento
+        WHERE
+            id=:id
+        """
+
+        rowcount, returning = self._db.execute(
+            sql,
+            id=pessoa.id,
+            nome=pessoa.nome,
+            documento=pessoa.documento,
+        )
+
+        if rowcount <= 0:
+            raise Exception(
+                'Erro atualizando Pessoa no banco de dados')
+
+        return pessoa

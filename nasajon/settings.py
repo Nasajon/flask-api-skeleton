@@ -38,6 +38,25 @@ ASYNC_QUEUE_NAME = os.environ["ASYNC_QUEUE_NAME"]
 ASYNC_QUEUE_TTL = int(os.getenv("ASYNC_QUEUE_TTL", 86400))
 ASYNC_QUEUE_DELAY = int(os.getenv("ASYNC_QUEUE_DELAY", 900))
 
+# Sincronia de dados
+# URL do serviço de indexação
+INDEX_DB_URL = os.environ['INDEX_DB_URL']
+if INDEX_DB_URL is None:
+    raise Exception("Faltando variável de ambiente INDEX_DB_URL")
+
+# Apis Utilizadas nos Exemplos
+API_PESSOAS_URL = os.environ['API_PESSOAS_URL']
+if API_PESSOAS_URL is None:
+    raise Exception("Faltando variável de ambiente API_PESSOAS_URL")
+
+API_CONTATOS_URL = os.environ['API_CONTATOS_URL']
+if API_CONTATOS_URL is None:
+    raise Exception("Faltando variável de ambiente API_CONTATOS_URL")
+
+# Indices
+## Indice para o exemplo de listagem de Pessoas
+INDEX_PESSOAS_LIST = 'faturamento.pessoa'
+
 # Configurando o logger
 logger = logging.getLogger(APP_NAME)
 if LOG_DEBUG:

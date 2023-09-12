@@ -1,12 +1,10 @@
-import datetime
 import uuid
+import datetime
 
-class Cliente:
 
+class PessoaPostResponseDTO:
     id: uuid.UUID
     codigo: str
-    nome: str
-    documento: str
     created_at: datetime.datetime
 
     def __init__(self) -> None:
@@ -14,6 +12,4 @@ class Cliente:
 
         self.id = None
         self.codigo = None
-        self.nome = None
-        self.documento = None
         self.created_at = None
