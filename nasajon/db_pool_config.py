@@ -8,6 +8,26 @@ from nasajon.settings import DATABASE_DRIVER
 import sqlalchemy
 
 
+def create_url(
+    username: str,
+    password: str,
+    host: str,
+    port: str,
+    database: str,
+    db_dialect: str = "postgresql+pg8000",
+):
+    return str(
+        sqlalchemy.engine.URL.create(
+            db_dialect,
+            username=username,
+            password=password,
+            host=host,
+            port=port,
+            database=database,
+        )
+    )
+
+
 def create_pool(database_conn_url):
     # Creating database connection pool
     db_pool = sqlalchemy.create_engine(
@@ -21,7 +41,16 @@ def create_pool(database_conn_url):
 
 
 if DATABASE_DRIVER.upper() in ["SINGLE_STORE", "MYSQL"]:
-    database_conn_url = f"mysql+pymysql://{DATABASE_USER}:{DATABASE_PASS}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
+    db_dialect = "mysql+pymysql"
 else:
-    database_conn_url = f"postgresql+pg8000://{DATABASE_USER}:{DATABASE_PASS}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
+    db_dialect = "postgresql+pg8000"
+
+database_conn_url = create_url(
+    username=DATABASE_USER,
+    password=DATABASE_PASS,
+    host=DATABASE_HOST,
+    port=DATABASE_PORT,
+    database=DATABASE_NAME,
+    db_dialect="mysql+pymysql",
+)
 db_pool = create_pool(database_conn_url)
