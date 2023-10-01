@@ -51,6 +51,6 @@ database_conn_url = create_url(
     host=DATABASE_HOST,
     port=DATABASE_PORT,
     database=DATABASE_NAME,
-    db_dialect="mysql+pymysql",
+    db_dialect=db_dialect,
 )
 db_pool = create_pool(database_conn_url)
