@@ -5,9 +5,9 @@ from nasajon.injector_factory import InjectorFactory
 
 # Configurando o healthcheck
 from nsj_rest_lib.healthcheck_config import HealthCheckConfig
+
 HealthCheckConfig(
-    flask_application=application,
-    injector_factory_class=InjectorFactory
+    flask_application=application, injector_factory_class=InjectorFactory
 ).config(True, True)
 
 # TODO Importar todos os controllers (se não, as rotas não existirão)
@@ -16,8 +16,8 @@ import nasajon.controller.pessoas_controller
 import nasajon.controller.telefones_controller
 import nasajon.controller.contatos_controller
 import nasajon.controller.ping_controller
-import nasajon.controller.token_info_controller
 import nasajon.controller.async_order_controller
+import nasajon.controller.dynamic_controller
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     application.run(port=5000)
