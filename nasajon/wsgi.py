@@ -18,6 +18,7 @@ import nasajon.controller.contatos_controller
 import nasajon.controller.ping_controller
 import nasajon.controller.async_order_controller
 import nasajon.controller.dynamic_controller
+import nasajon.restlib2.entity_controller
 
 if __name__ == "__main__":
     application.run(port=5000)

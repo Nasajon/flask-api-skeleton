@@ -1,13 +1,13 @@
 ###############################
 # Listagem dinâmica
 ###############################
-GET http://localhost:5000/app/dynamic-lists HTTP/1.1
+GET http://localhost:5000/app/dynamic-lists/clientes HTTP/1.1
 Accept: application/json
 
 ###############################
 # Get dinâmico
 ###############################
-GET http://localhost:5000/app/dynamic-lists/87393f6b-6062-453a-8325-15ce513da1d9 HTTP/1.1
+GET http://localhost:5000/app/dynamic-lists/clientes/87393f6b-6062-453a-8325-15ce513da1d9 HTTP/1.1
 Accept: application/json
 
 ###############################
