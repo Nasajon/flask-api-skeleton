@@ -19,18 +19,20 @@ LIST_POST_ROUTE = f"/{APP_NAME}/restlib2/entities"
 GET_PUT_ROUTE = f"/{APP_NAME}/restlib2/entities/<id>"
 
 
-def compilar_entity(codigo_entity: str, json_edl: dict[str, any], edl_hash: str):
+def compilar_entity(
+    escopo: str, codigo_entity: str, json_edl: dict[str, any], edl_hash: str
+):
     logger.debug(f"Compilando Entity {codigo_entity}, e salvando no Redis.")
 
     dto_class_name, dto_code, entity_class_name, entity_code = generate_from_edl(
         json_edl
     )
 
-    set_redis("dto", codigo_entity, dto_code)
-    set_redis("dto_class_name", codigo_entity, dto_class_name)
-    set_redis("entity", codigo_entity, entity_code)
-    set_redis("entity_class_name", codigo_entity, entity_class_name)
-    set_redis("hash", codigo_entity, edl_hash)
+    set_redis("dto", escopo, codigo_entity, dto_code)
+    set_redis("dto_class_name", escopo, codigo_entity, dto_class_name)
+    set_redis("entity", escopo, codigo_entity, entity_code)
+    set_redis("entity_class_name", escopo, codigo_entity, entity_class_name)
+    set_redis("hash", escopo, codigo_entity, edl_hash)
 
 
 def before_insert_entity(db, new_dto: EntityDTO):
@@ -42,7 +44,9 @@ def before_insert_entity(db, new_dto: EntityDTO):
 
 
 def after_insert_entity(db, new_dto: EntityDTO, after_data: AfterInsertUpdateData):
-    compilar_entity(new_dto.codigo, new_dto.json_schema, new_dto.content_hash)
+    compilar_entity(
+        new_dto.escopo, new_dto.codigo, new_dto.json_schema, new_dto.content_hash
+    )
 
 
 def before_update_entity(db, old_dto: EntityDTO, new_dto: EntityDTO):
@@ -54,7 +58,9 @@ def after_update_entity(
     db, old_dto: EntityDTO, new_dto: EntityDTO, after_data: AfterInsertUpdateData
 ):
     if new_dto.content_hash != old_dto.content_hash:
-        compilar_entity(new_dto.codigo, new_dto.json_schema, new_dto.content_hash)
+        compilar_entity(
+            new_dto.escopo, new_dto.codigo, new_dto.json_schema, new_dto.content_hash
+        )
 
 
 @application.route(LIST_POST_ROUTE, methods=["GET"])

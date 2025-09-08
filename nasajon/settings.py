@@ -38,6 +38,8 @@ ASYNC_QUEUE_NAME = os.environ["ASYNC_QUEUE_NAME"]
 ASYNC_QUEUE_TTL = int(os.getenv("ASYNC_QUEUE_TTL", 86400))
 ASYNC_QUEUE_DELAY = int(os.getenv("ASYNC_QUEUE_DELAY", 900))
 
+ESCOPO_RESTLIB2 = os.environ["ESCOPO_RESTLIB2"]
+
 # Sincronia de dados
 # URL do serviço de indexação
 INDEX_DB_URL = os.environ["INDEX_DB_URL"]

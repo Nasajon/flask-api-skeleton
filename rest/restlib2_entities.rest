@@ -99,7 +99,7 @@ Content-Type: application/json
     "id": "teste.cliente",
     "version": 1,
     "model": {
-      "required": ["id", "codigo", "nome", "documento", "created_at"],
+      "required": ["id", "codigo", "nome", "documento", "criado_em"],
       "properties": {
         "id": {
           "type": "string",
@@ -123,12 +123,12 @@ Content-Type: application/json
           "length": 14,
           "minimum": 1
         },
-        "created_at": {
+        "criado_em": {
           "type": "datetime",
           "label": "Criado em"
         }
       },
-      "storage": {
+      "repository": {
         "map": "teste.cliente",
         "sharedTable": true,
         "tableOwner": true,
@@ -137,7 +137,7 @@ Content-Type: application/json
           "codigo": { "column": "codigo" },
           "nome": { "column": "nome" },
           "documento": { "column": "documento" },
-          "createdAt": { "column": "created_at" }
+          "criado_em": { "column": "created_at" }
         },
         "indexes": [
           { "name": "pk_teste_cliente", "fields": ["id"], "unique": true }

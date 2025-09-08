@@ -2,29 +2,17 @@
 # -*- coding: utf-8 -*-
 
 """
-Gerador de DTO e Entity a partir de um EDL JSON (v1.x).
+Gerador de DTO e Entity a partir de um EDL JSON (v1.x) — AGORA usando 'repository'
+no lugar de 'storage', e propagando o de-para de colunas:
+ - Entity usa os nomes físicos vindos de model.repository.columns[*].column (quando houver).
+ - DTOField ganha entity_field="<nome_do_atributo_na_Entity>" para cada propriedade.
 
 Uso:
   python generator.py caminho/para/arquivo.edl.json
-
-Saída:
-  - Imprime no stdout os fontes do DTO e do Entity.
-  - Também grava arquivos opcionais: <Entidade>DTO.py e <Entidade>Entity.py (se desejar, basta descomentar no final).
-
-Notas de mapeamento (EDL -> RestLib):
-- Campos obrigatórios: model.required  -> DTOField(not_null=True).
-- Chave primária: properties[*].pk == true -> DTOField(pk=True) e @Entity(pk_field=...).
-- Tipos/formatos: mapeados para types Python + validadores (uuid, datetime, date, int/float, bool, str).
-- Resumo: todos os campos ficam com resume=True (ajuste se quiser outra política).
-- Strings: se houver "length", vira max=length e strip=True; se houver restrições mínimas, usa min/maximum.
-- Storage: table_name vem de model.storage.map; colunas físicas NÃO são escondidas (nenhum campo é omitido).
-- Ordenação padrão: api.defaultSort (sinal "-" indica desc; aqui usamos só a lista de campos como default_order_fields).
-- Convenções estruturais e chaves citadas da especificação EDL (model.required, properties, storage, api, etc.). :contentReference[oaicite:1]{index=1}
 """
 
 import json
 import sys
-import textwrap
 import keyword
 from typing import Any, Dict, List, Tuple
 
@@ -35,7 +23,9 @@ from typing import Any, Dict, List, Tuple
 
 def py_identifier(name: str) -> str:
     """Garante que o nome é um identificador Python válido."""
-    n = name.strip().replace("-", "_")
+    n = (name or "").strip().replace("-", "_")
+    if not n:
+        n = "_"
     if not n.isidentifier() or keyword.iskeyword(n):
         n = f"{n}_"
     return n
@@ -64,12 +54,24 @@ def to_python_type(prop: Dict[str, Any]) -> str:
         return "float"
     if t in {"boolean"}:
         return "bool"
-    # default
     return "str"
 
 
+def build_entity_field_name(logical: str, columns_map: Dict[str, Any]) -> str:
+    """
+    Retorna o nome do atributo na Entity para um dado campo lógico,
+    priorizando o nome físico em repository.columns[logical].column (se existir).
+    """
+    col_meta = (columns_map or {}).get(logical) or {}
+    entity_attr = col_meta.get("column") or logical
+    return py_identifier(entity_attr)
+
+
 def dto_field_args(
-    logical: str, prop: Dict[str, Any], required: List[str]
+    logical: str,
+    prop: Dict[str, Any],
+    required: List[str],
+    columns_map: Dict[str, Any],
 ) -> Dict[str, Any]:
     args: Dict[str, Any] = {}
 
@@ -89,7 +91,6 @@ def dto_field_args(
         args["strip"] = True
         if "length" in prop:
             args["max"] = int(prop["length"])
-        # mínimo (quando especificado)
         if "minimum" in prop:
             args["min"] = int(prop["minimum"])
 
@@ -107,34 +108,34 @@ def dto_field_args(
     # Formatos especiais
     fmt = (prop.get("format") or "").lower()
     if fmt == "uuid":
-        # aplica validator de uuid
         args["validator"] = "DTOFieldValidators().validate_uuid"
-        # tamanho físico usual de uuid textual (36)
         args["min"] = 36
         args["max"] = 36
 
-    # Default lógico (quando presente) — mantemos literal quando simples
+    # Default lógico (quando presente)
     if "default" in prop and prop["default"] is not None:
-        # Casos comuns no EDL: "now()" (datas) — deixe como callable se quiser adaptar
         default_val = prop["default"]
         if isinstance(default_val, (int, float, bool)):
             args["default_value"] = repr(default_val)
         elif isinstance(default_val, str) and default_val.endswith("()"):
-            # manter como nome de função, será resolvido no import do projeto (ex.: datetime.datetime.now)
-            # aqui, por segurança, deixamos literal string; o timekeeper real costuma vir do banco
             args["default_value"] = default_val
         else:
             args["default_value"] = repr(default_val)
 
+    # Sempre informar o nome do atributo correspondente na Entity
+    args["entity_field"] = build_entity_field_name(logical, columns_map)
+
     return args
 
 
-def render_dto(edl: Dict[str, Any]) -> tuple[str, str]:
-    model = edl.get("model", {})
+def render_dto(edl: Dict[str, Any]) -> Tuple[str, str]:
+    model = edl.get("model", {}) or {}
     props: Dict[str, Any] = model.get("properties", {}) or {}
     required: List[str] = model.get("required", []) or []
+    repository = model.get("repository", {}) or {}
+    columns_map: Dict[str, Any] = repository.get("columns", {}) or {}
+
     entity_name_full = edl.get("id") or "Entity"
-    # Monta um nome de classe lógico (última parte após ponto)
     class_base = entity_name_full.split(".")[-1]
     class_name = f"{class_base[0].upper()}{class_base[1:]}"
     dto_class = f"{class_name}DTO"
@@ -164,12 +165,12 @@ def render_dto(edl: Dict[str, Any]) -> tuple[str, str]:
     lines.append(f"class {dto_class}(DTOBase):")
     if not props:
         lines.append("    pass")
-        return "\n".join(lines)
+        return (dto_class, "\n".join(lines))
 
     for logical in props:
         meta = props[logical] or {}
         py_type = to_python_type(meta)
-        field_args = dto_field_args(logical, meta, required)
+        field_args = dto_field_args(logical, meta, required, columns_map)
 
         # Monta chamada DTOField(...)
         arg_parts = []
@@ -186,10 +187,10 @@ def render_dto(edl: Dict[str, Any]) -> tuple[str, str]:
     return (dto_class, "\n".join(lines))
 
 
-def render_entity(edl: Dict[str, Any]) -> tuple[str, str]:
-    model = edl.get("model", {})
+def render_entity(edl: Dict[str, Any]) -> Tuple[str, str]:
+    model = edl.get("model", {}) or {}
     props: Dict[str, Any] = model.get("properties", {}) or {}
-    storage = model.get("storage", {}) or {}
+    repository = model.get("repository", {}) or {}
     api = model.get("api", {}) or {}
 
     entity_name_full = edl.get("id") or "Entity"
@@ -197,17 +198,15 @@ def render_entity(edl: Dict[str, Any]) -> tuple[str, str]:
     class_name = f"{class_base[0].upper()}{class_base[1:]}"
     entity_class = f"{class_name}Entity"
 
-    table_name = storage.get("map") or "schema.tabela"
+    table_name = repository.get("map") or "schema.tabela"
     pk_field = detect_pk(props) or "id"
 
-    # default_order_fields = api.defaultSort (limpa prefixos '-' e ignora campos desconhecidos)
-    default_sort = []
+    # default_order_fields = api.defaultSort (removendo prefixos '+'|'-')
+    default_sort: List[str] = []
     for item in api.get("defaultSort", []) or []:
-        # remove prefixo de ordenação, mas mantemos apenas o nome lógico do campo
         fld = str(item).lstrip("+-")
         if fld in props:
             default_sort.append(fld)
-    # fallback: se vazio, usa pk
     if not default_sort:
         default_sort = [pk_field] if pk_field else []
 
@@ -226,6 +225,8 @@ def render_entity(edl: Dict[str, Any]) -> tuple[str, str]:
     if need_datetime:
         header_imports.insert(0, "import datetime")
 
+    columns_map: Dict[str, Any] = repository.get("columns", {}) or {}
+
     lines: List[str] = []
     lines.extend(header_imports)
     lines.append("")
@@ -242,12 +243,12 @@ def render_entity(edl: Dict[str, Any]) -> tuple[str, str]:
 
     if not props:
         lines.append("    pass")
-        return "\n".join(lines)
+        return (entity_class, "\n".join(lines))
 
     for logical, meta in props.items():
         py_type = to_python_type(meta)
-        # A Entity não usa DTOField; apenas anota e inicializa None
-        lines.append(f"    {py_identifier(logical)}: {py_type} = None")
+        entity_attr = build_entity_field_name(logical, columns_map)
+        lines.append(f"    {entity_attr}: {py_type} = None")
 
     return (entity_class, "\n".join(lines))
 
@@ -278,14 +279,6 @@ def main():
     print(dto_code)
     print(sep + "# ENTITY\n" + sep)
     print(entity_code)
-
-    # Opcional: gravar em arquivos
-    # entity_name_full = edl.get("id") or "Entity"
-    # class_base = entity_name_full.split(".")[-1]
-    # with open(f"{class_base}DTO.py", "w", encoding="utf-8") as f_dto:
-    #     f_dto.write(dto_code + "\n")
-    # with open(f"{class_base}Entity.py", "w", encoding="utf-8") as f_ent:
-    #     f_ent.write(entity_code + "\n")
 
 
 if __name__ == "__main__":

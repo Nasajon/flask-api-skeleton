@@ -1,6 +1,6 @@
 from typing import Any
 
-from nasajon.settings import application, APP_NAME, logger
+from nasajon.settings import application, APP_NAME, ESCOPO_RESTLIB2, logger
 from nasajon.redis_config import get_redis
 
 from nsj_gcf_utils.rest_error_util import format_json_error
@@ -23,14 +23,14 @@ class MissingEntityConfigException(Exception):
     pass
 
 
-def load_entity_source(entity_id) -> tuple[str, str]:
+def load_entity_source(entity_id: str) -> tuple[str, str]:
 
     # Recuperando o código do DTO e Entity correspondente
-    dto_class_name = get_redis("dto_class_name", entity_id)
-    source_dto = get_redis("dto", entity_id)
-    entity_class_name = get_redis("entity_class_name", entity_id)
-    source_entity = get_redis("entity", entity_id)
-    entity_hash = get_redis("hash", entity_id)
+    dto_class_name = get_redis("dto_class_name", ESCOPO_RESTLIB2, entity_id)
+    source_dto = get_redis("dto", ESCOPO_RESTLIB2, entity_id)
+    entity_class_name = get_redis("entity_class_name", ESCOPO_RESTLIB2, entity_id)
+    source_entity = get_redis("entity", ESCOPO_RESTLIB2, entity_id)
+    entity_hash = get_redis("hash", ESCOPO_RESTLIB2, entity_id)
 
     if (
         source_dto is None
@@ -145,7 +145,6 @@ def put_dynamic(*args: Any, **kwargs: Any):
 
     try:
         # Recuperando o código do DTO e Entity correspondente
-        entity_id = kwargs.pop("entity_id")
         dto_class_name, entity_class_name = load_entity_source(entity_id)
 
         # Executando o list pelo RestLib
@@ -172,7 +171,6 @@ def patch_dynamic(*args: Any, **kwargs: Any):
 
     try:
         # Recuperando o código do DTO e Entity correspondente
-        entity_id = kwargs.pop("entity_id")
         dto_class_name, entity_class_name = load_entity_source(entity_id)
 
         # Executando o list pelo RestLib
