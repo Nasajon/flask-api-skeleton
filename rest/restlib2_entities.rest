@@ -1,0 +1,160 @@
+###############################
+# Listagem dinâmica
+###############################
+GET http://localhost:5000/app/restlib2/entities HTTP/1.1
+Accept: application/json
+
+###############################
+# Get dinâmico
+###############################
+GET http://localhost:5000/app/restlib2/entities/87393f6b-6062-453a-8325-15ce513da1d9 HTTP/1.1
+Accept: application/json
+
+###############################
+# Post dinâmico
+###############################
+POST http://localhost:5000/app/restlib2/entities HTTP/1.1
+Content-Type: application/json
+
+{
+  "id": "0b83f9a8-0bee-4f6e-8b9a-9a9e7a77e53e",
+  "escopo": "teste",
+  "codigo": "clientes",
+  "descricao": "descricao teste",
+  "json_schema": {
+    "edlVersion": "1.0",
+    "escopo": "teste",
+    "id": "teste.cliente",
+    "version": 1,
+    "model": {
+      "required": ["id", "codigo", "nome", "documento", "created_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "pk": true,
+          "label": "ID"
+        },
+        "codigo": {
+          "type": "integer",
+          "label": "Código"
+        },
+        "nome": {
+          "type": "string",
+          "label": "Nome",
+          "length": 100,
+          "minimum": 1
+        },
+        "documento": {
+          "type": "string",
+          "label": "Documento",
+          "length": 14,
+          "minimum": 1
+        },
+        "created_at": {
+          "type": "datetime",
+          "label": "Criado em"
+        }
+      },
+      "storage": {
+        "map": "teste.cliente",
+        "sharedTable": true,
+        "tableOwner": true,
+        "columns": {
+          "id": { "column": "id" },
+          "codigo": { "column": "codigo" },
+          "nome": { "column": "nome" },
+          "documento": { "column": "documento" },
+          "createdAt": { "column": "created_at" }
+        },
+        "indexes": [
+          { "name": "pk_teste_cliente", "fields": ["id"], "unique": true }
+        ]
+      },
+      "api": {
+        "resource": "clientes",
+        "expose": true,
+        "verbs": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+        "filters": ["codigo", "nome", "documento"],
+        "defaultSort": ["codigo", "nome"]
+      }
+    }
+  }
+}
+
+###############################
+# Put dinâmico
+###############################
+PUT http://localhost:5000/app/restlib2/entities/0b83f9a8-0bee-4f6e-8b9a-9a9e7a77e53e HTTP/1.1
+Content-Type: application/json
+
+{
+  "id": "0b83f9a8-0bee-4f6e-8b9a-9a9e7a77e53e",
+  "escopo": "teste",
+  "codigo": "clientes",
+  "descricao": "descricao teste",
+  "json_schema": {
+    "edlVersion": "1.0",
+    "escopo": "teste",
+    "id": "teste.cliente",
+    "version": 1,
+    "model": {
+      "required": ["id", "codigo", "nome", "documento", "criado_em"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "pk": true,
+          "label": "ID"
+        },
+        "codigo": {
+          "type": "integer",
+          "label": "Código"
+        },
+        "nome": {
+          "type": "string",
+          "label": "Nome",
+          "length": 100,
+          "minimum": 1
+        },
+        "documento": {
+          "type": "string",
+          "label": "Documento",
+          "length": 14,
+          "minimum": 1
+        },
+        "criado_em": {
+          "type": "datetime",
+          "label": "Criado em"
+        }
+      },
+      "repository": {
+        "map": "teste.cliente",
+        "sharedTable": true,
+        "tableOwner": true,
+        "columns": {
+          "id": { "column": "id" },
+          "codigo": { "column": "codigo" },
+          "nome": { "column": "nome" },
+          "documento": { "column": "documento" },
+          "criado_em": { "column": "created_at" }
+        },
+        "indexes": [
+          { "name": "pk_teste_cliente", "fields": ["id"], "unique": true }
+        ]
+      },
+      "api": {
+        "resource": "clientes",
+        "expose": true,
+        "verbs": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+        "filters": ["codigo", "nome", "documento"],
+        "defaultSort": ["codigo", "nome"]
+      }
+    }
+  }
+}
+
+###############################
+# DELETE
+###############################
+DELETE http://localhost:5000/app/restlib2/entities/0b83f9a8-0bee-4f6e-8b9a-9a9e7a77e53e HTTP/1.1

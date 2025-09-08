@@ -16,3 +16,4 @@ nsj-queue-lib==0.5.6
 nsj_sql_utils_lib==0.0.4
 psycopg2_binary>=2.9.6
 nsj-queue-lib==0.5.6
+redis==6.4.0

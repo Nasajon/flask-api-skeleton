@@ -1,159 +1,187 @@
 from typing import Any
 
-from nasajon.settings import application, APP_NAME
+from nasajon.settings import application, APP_NAME, ESCOPO_RESTLIB2, logger
+from nasajon.redis_config import get_redis
 
+from nsj_gcf_utils.rest_error_util import format_json_error
+
+from nsj_rest_lib.controller.controller_util import DEFAULT_RESP_HEADERS
 from nsj_rest_lib.controller.list_route import ListRoute
 from nsj_rest_lib.controller.get_route import GetRoute
 from nsj_rest_lib.controller.post_route import PostRoute
 from nsj_rest_lib.controller.put_route import PutRoute
+from nsj_rest_lib.controller.patch_route import PatchRoute
 
-COLLECTION_DYNAMIC_ROUTE = f"/{APP_NAME}/dynamic-lists"
-ONE_DYNAMIC_ROUTE = f"/{APP_NAME}/dynamic-lists/<id>"
+COLLECTION_DYNAMIC_ROUTE = f"/{APP_NAME}/dynamic-lists/<entity_id>"
+ONE_DYNAMIC_ROUTE = f"/{APP_NAME}/dynamic-lists/<entity_id>/<id>"
 
-
-codigo_dinamico = """
-import datetime
-import uuid
-
-from nsj_rest_lib.decorator.dto import DTO
-from nsj_rest_lib.descriptor.dto_field import DTOField
-from nsj_rest_lib.descriptor.dto_field_validators import DTOFieldValidators
-from nsj_rest_lib.dto.dto_base import DTOBase
+namespace = {}
+compiled_entities_hashes = {}
 
 
-@DTO()
-class ClienteDTO(DTOBase):
-
-    id: uuid.UUID = DTOField(
-        pk=True,
-        resume=True,
-        not_null=True,
-        default_value=uuid.uuid4,
-        strip=True,
-        min=36,
-        max=36,
-        validator=DTOFieldValidators().validate_uuid,
-    )
-
-    codigo: int = DTOField(
-        resume=True,
-        not_null=True
-    )
-
-    nome: str = DTOField(
-        resume=True,
-        strip=True,
-        not_null=True,
-        min=1,
-        max=100
-    )
-
-    documento: str = DTOField(
-        resume=True,
-        strip=True,
-        not_null=True,
-        min=1,
-        max=14
-    )
-
-    created_at: datetime.datetime = DTOField(
-        resume=True,
-        not_null=True,
-        default_value=datetime.datetime.now
-    )
-
-import datetime
-import uuid
-
-from nsj_rest_lib.entity.entity_base import EntityBase
-from nsj_rest_lib.decorator.entity import Entity
+class MissingEntityConfigException(Exception):
+    pass
 
 
-@Entity(
-    table_name="teste.cliente",
-    pk_field="id",
-    default_order_fields=["codigo", "nome"],
-)
-class ClienteEntity(EntityBase):
-    id: uuid.UUID = None
-    codigo: int = None
-    nome: str = None
-    documento: str = None
-    created_at: datetime.datetime = None
-"""
+def load_entity_source(entity_id: str) -> tuple[str, str]:
+
+    # Recuperando o código do DTO e Entity correspondente
+    dto_class_name = get_redis("dto_class_name", ESCOPO_RESTLIB2, entity_id)
+    source_dto = get_redis("dto", ESCOPO_RESTLIB2, entity_id)
+    entity_class_name = get_redis("entity_class_name", ESCOPO_RESTLIB2, entity_id)
+    source_entity = get_redis("entity", ESCOPO_RESTLIB2, entity_id)
+    entity_hash = get_redis("hash", ESCOPO_RESTLIB2, entity_id)
+
+    if (
+        source_dto is None
+        or source_entity is None
+        or entity_hash is None
+        or entity_class_name is None
+        or dto_class_name is None
+    ):
+        raise MissingEntityConfigException()
+
+    # Verificando se o Entity foi alterado
+    if compiled_entities_hashes.get(
+        entity_id
+    ) is None or entity_hash != compiled_entities_hashes.get(entity_id):
+        logger.debug(f"Carregando o código do Entity {entity_id} no namespace")
+
+        # Executa o código da classe no namespace
+        exec(source_dto, namespace)
+        exec(source_entity, namespace)
+
+        # Gravando o último hash compilado
+        compiled_entities_hashes[entity_id] = entity_hash
+
+    return dto_class_name, entity_class_name
 
 
 @application.route(COLLECTION_DYNAMIC_ROUTE, methods=["GET"])
 def list_dynamic(*args: Any, **kwargs: Any):
-    # cria um namespace isolado
-    namespace = {}
+    # Recuperando o identificador da entidade
+    if "entity_id" not in kwargs:
+        msg = "Faltando parâmetro identificador da entidade na URL."
+        return (format_json_error(msg), 400, {**DEFAULT_RESP_HEADERS})
+    entity_id = kwargs.pop("entity_id")
 
-    # executa o código da classe no namespace
-    exec(codigo_dinamico, namespace)
+    try:
+        # Recuperando o código do DTO e Entity correspondente
+        dto_class_name, entity_class_name = load_entity_source(entity_id)
 
-    # Executando o list pelo RestLib
-    route = ListRoute(
-        url=COLLECTION_DYNAMIC_ROUTE,
-        http_method="GET",
-        dto_class=namespace["ClienteDTO"],
-        entity_class=namespace["ClienteEntity"],
-    )
+        # Executando o list pelo RestLib
+        route = ListRoute(
+            url=COLLECTION_DYNAMIC_ROUTE,
+            http_method="GET",
+            dto_class=namespace[dto_class_name],
+            entity_class=namespace[entity_class_name],
+        )
 
-    return route.handle_request(*args, **kwargs)
+        return route.handle_request(*args, **kwargs)
+    except MissingEntityConfigException:
+        msg = f"Entity configuration for {entity_id} not found."
+        return (format_json_error(msg), 412, {**DEFAULT_RESP_HEADERS})
 
 
 @application.route(ONE_DYNAMIC_ROUTE, methods=["GET"])
 def get_dynamic(*args: Any, **kwargs: Any):
-    # cria um namespace isolado
-    namespace = {}
+    # Recuperando o identificador da entidade
+    if "entity_id" not in kwargs:
+        msg = "Faltando parâmetro identificador da entidade na URL."
+        return (format_json_error(msg), 400, {**DEFAULT_RESP_HEADERS})
+    entity_id = kwargs.pop("entity_id")
 
-    # executa o código da classe no namespace
-    exec(codigo_dinamico, namespace)
+    try:
+        # Recuperando o código do DTO e Entity correspondente
+        dto_class_name, entity_class_name = load_entity_source(entity_id)
 
-    # Executando o list pelo RestLib
-    route = GetRoute(
-        url=COLLECTION_DYNAMIC_ROUTE,
-        http_method="GET",
-        dto_class=namespace["ClienteDTO"],
-        entity_class=namespace["ClienteEntity"],
-    )
+        # Executando o list pelo RestLib
+        route = GetRoute(
+            url=ONE_DYNAMIC_ROUTE,
+            http_method="GET",
+            dto_class=namespace[dto_class_name],
+            entity_class=namespace[entity_class_name],
+        )
 
-    return route.handle_request(*args, **kwargs)
+        return route.handle_request(*args, **kwargs)
+    except MissingEntityConfigException:
+        msg = f"Entity configuration for {entity_id} not found."
+        return (format_json_error(msg), 412, {**DEFAULT_RESP_HEADERS})
 
 
 @application.route(COLLECTION_DYNAMIC_ROUTE, methods=["POST"])
 def post_dynamic(*args: Any, **kwargs: Any):
-    # cria um namespace isolado
-    namespace = {}
+    # Recuperando o identificador da entidade
+    if "entity_id" not in kwargs:
+        msg = "Faltando parâmetro identificador da entidade na URL."
+        return (format_json_error(msg), 400, {**DEFAULT_RESP_HEADERS})
+    entity_id = kwargs.pop("entity_id")
 
-    # executa o código da classe no namespace
-    exec(codigo_dinamico, namespace)
+    try:
+        # Recuperando o código do DTO e Entity correspondente
+        dto_class_name, entity_class_name = load_entity_source(entity_id)
 
-    # Executando o list pelo RestLib
-    route = PostRoute(
-        url=COLLECTION_DYNAMIC_ROUTE,
-        http_method="GET",
-        dto_class=namespace["ClienteDTO"],
-        entity_class=namespace["ClienteEntity"],
-    )
+        # Executando o list pelo RestLib
+        route = PostRoute(
+            url=COLLECTION_DYNAMIC_ROUTE,
+            http_method="POST",
+            dto_class=namespace[dto_class_name],
+            entity_class=namespace[entity_class_name],
+        )
 
-    return route.handle_request(*args, **kwargs)
+        return route.handle_request(*args, **kwargs)
+    except MissingEntityConfigException:
+        msg = f"Entity configuration for {entity_id} not found."
+        return (format_json_error(msg), 412, {**DEFAULT_RESP_HEADERS})
 
 
 @application.route(ONE_DYNAMIC_ROUTE, methods=["PUT"])
 def put_dynamic(*args: Any, **kwargs: Any):
-    # cria um namespace isolado
-    namespace = {}
+    # Recuperando o identificador da entidade
+    if "entity_id" not in kwargs:
+        msg = "Faltando parâmetro identificador da entidade na URL."
+        return (format_json_error(msg), 400, {**DEFAULT_RESP_HEADERS})
+    entity_id = kwargs.pop("entity_id")
 
-    # executa o código da classe no namespace
-    exec(codigo_dinamico, namespace)
+    try:
+        # Recuperando o código do DTO e Entity correspondente
+        dto_class_name, entity_class_name = load_entity_source(entity_id)
 
-    # Executando o list pelo RestLib
-    route = PutRoute(
-        url=COLLECTION_DYNAMIC_ROUTE,
-        http_method="GET",
-        dto_class=namespace["ClienteDTO"],
-        entity_class=namespace["ClienteEntity"],
-    )
+        # Executando o list pelo RestLib
+        route = PutRoute(
+            url=ONE_DYNAMIC_ROUTE,
+            http_method="PUT",
+            dto_class=namespace[dto_class_name],
+            entity_class=namespace[entity_class_name],
+        )
 
-    return route.handle_request(*args, **kwargs)
+        return route.handle_request(*args, **kwargs)
+    except MissingEntityConfigException:
+        msg = f"Entity configuration for {entity_id} not found."
+        return (format_json_error(msg), 412, {**DEFAULT_RESP_HEADERS})
+
+
+@application.route(ONE_DYNAMIC_ROUTE, methods=["PATCH"])
+def patch_dynamic(*args: Any, **kwargs: Any):
+    # Recuperando o identificador da entidade
+    if "entity_id" not in kwargs:
+        msg = "Faltando parâmetro identificador da entidade na URL."
+        return (format_json_error(msg), 400, {**DEFAULT_RESP_HEADERS})
+    entity_id = kwargs.pop("entity_id")
+
+    try:
+        # Recuperando o código do DTO e Entity correspondente
+        dto_class_name, entity_class_name = load_entity_source(entity_id)
+
+        # Executando o list pelo RestLib
+        route = PatchRoute(
+            url=ONE_DYNAMIC_ROUTE,
+            http_method="PATCH",
+            dto_class=namespace[dto_class_name],
+            entity_class=namespace[entity_class_name],
+        )
+
+        return route.handle_request(*args, **kwargs)
+    except MissingEntityConfigException:
+        msg = f"Entity configuration for {entity_id} not found."
+        return (format_json_error(msg), 412, {**DEFAULT_RESP_HEADERS})
