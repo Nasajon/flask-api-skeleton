@@ -29,7 +29,7 @@ class EntityDTO(DTOBase):
 
     json_schema: dict = DTOField(not_null=True)
 
-    content_hash: str = DTOField(not_null=True, strip=True, min=1, max=300)
+    content_hash: str = DTOField(strip=True, min=1, max=300)
 
     created_at: datetime.datetime = DTOField(
         resume=True, not_null=True, default_value=datetime.datetime.now

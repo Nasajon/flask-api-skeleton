@@ -129,7 +129,7 @@ def dto_field_args(
     return args
 
 
-def render_dto(edl: Dict[str, Any]) -> str:
+def render_dto(edl: Dict[str, Any]) -> tuple[str, str]:
     model = edl.get("model", {})
     props: Dict[str, Any] = model.get("properties", {}) or {}
     required: List[str] = model.get("required", []) or []
@@ -183,10 +183,10 @@ def render_dto(edl: Dict[str, Any]) -> str:
         lines.append("")
         lines.append(f"    {py_identifier(logical)}: {py_type} = DTOField({args_str})")
 
-    return "\n".join(lines)
+    return (dto_class, "\n".join(lines))
 
 
-def render_entity(edl: Dict[str, Any]) -> str:
+def render_entity(edl: Dict[str, Any]) -> tuple[str, str]:
     model = edl.get("model", {})
     props: Dict[str, Any] = model.get("properties", {}) or {}
     storage = model.get("storage", {}) or {}
@@ -249,13 +249,13 @@ def render_entity(edl: Dict[str, Any]) -> str:
         # A Entity não usa DTOField; apenas anota e inicializa None
         lines.append(f"    {py_identifier(logical)}: {py_type} = None")
 
-    return "\n".join(lines)
+    return (entity_class, "\n".join(lines))
 
 
-def generate_from_edl(edl: Dict[str, Any]) -> Tuple[str, str]:
-    dto_code = render_dto(edl)
-    entity_code = render_entity(edl)
-    return dto_code, entity_code
+def generate_from_edl(edl: Dict[str, Any]) -> Tuple[str, str, str, str]:
+    dto_class_name, dto_code = render_dto(edl)
+    entity_class_name, entity_code = render_entity(edl)
+    return (dto_class_name, dto_code, entity_class_name, entity_code)
 
 
 # -----------------------
@@ -271,7 +271,7 @@ def main():
     with open(sys.argv[1], "r", encoding="utf-8") as f:
         edl = json.load(f)
 
-    dto_code, entity_code = generate_from_edl(edl)
+    _, dto_code, _, entity_code = generate_from_edl(edl)
 
     sep = "\n" + ("#" * 80) + "\n"
     print(sep + "# DTO\n" + sep)
